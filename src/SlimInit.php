@@ -227,7 +227,7 @@
 
 					/* @var $config Handlers\Route */
 					foreach ($handlerConfig as $route) {
-						if (!$this->route instanceof Route) {
+						if (!$route instanceof Route) {
 							throw new \InvalidArgumentException('Route must be instance of Adepto\\Slim3Init\\Handlers\\Route');
 						}
 
