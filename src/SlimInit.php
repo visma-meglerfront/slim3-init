@@ -84,9 +84,9 @@
 			/*
 				Add some default exceptions
 			 */
-			$this->setException('Adepto\\SlimInit\\Exceptions\\InvalidRequestException', 400);
-			$this->setException('Adepto\\SlimInit\\Exceptions\\UnauthorizedException', 401);
-			$this->setException('Adepto\\SlimInit\\Exceptions\\AccessDeniedException', 403);
+			$this->setException('Adepto\\Slim3Init\\Exceptions\\InvalidRequestException', 400);
+			$this->setException('Adepto\\Slim3Init\\Exceptions\\UnauthorizedException', 401);
+			$this->setException('Adepto\\Slim3Init\\Exceptions\\AccessDeniedException', 403);
 
 			/*
 				Set an empty debug header (disabling this feature essentially)
