@@ -188,7 +188,7 @@ getData(): array
 Should return information specific to that permission, i.e. IDs of a resource that can be accessed. Can be an empty array, if there is no information.
 
 ```php
-isAllowed(): true
+isAllowed(): bool
 ```
 
 Should return true, if the permission is allowed.
