@@ -16,6 +16,10 @@
 		InvalidRequestException
 	};
 
+	use Adepto\Slim3Init\{
+		Handlers\Route
+	};
+
 	/**
 	 * HandlerCaller
 	 * An adapter for making calls to any {@see Handler} without using actual HTTP requests.
@@ -82,7 +86,7 @@
 		 *
 		 * @return array
 		 */
-		protected function getRouteForURL(string $url): array {
+		protected function getRouteForURL(string $url): Route {
 			if (!isset($this->routesCache[$url])) {
 				$routes = get_class($this->handler)::getRoutes();
 
@@ -142,11 +146,11 @@
 		 *
 		 * @param string $url URL
 		 *
-		 * @return stdClass
+		 * @return \stdClass
 		 */
-		protected function urlToArgs(string $url): stdClass {
+		protected function urlToArgs(string $url): \stdClass {
 			$route = $this->getRouteForURL($url);
-			$args = new stdClass();
+			$args = new \stdClass();
 
 			# Compile pattern to match values first by replacing the labels with nothing
 			$pattern = preg_replace('#\{[\S]+:(.*?)\}#', '($1)', $route->getURL());
@@ -169,7 +173,7 @@
 			$argsArray = array_combine($argNames, $argValues);
 
 			# Convert to object
-			return ArrayFunctions::arrayToObject($argsArray);
+			return SlimInit::arrayToObject($argsArray);
 		}
 
 		/**
