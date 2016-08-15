@@ -10,7 +10,7 @@
 			"homepage": "https://bluefirex.de"
 		}
 	],
-	"version": "1.0.7",
+	"version": "1.0.8",
 	"require": {
 		"php": ">=7.0.0",
 		"slim/slim": "^3.5"
