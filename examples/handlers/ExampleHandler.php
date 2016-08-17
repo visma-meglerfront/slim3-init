@@ -22,7 +22,7 @@
 		 * @return Psr\Http\Message\ResponseInterface
 		 */
 		public function getEcho(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args): ResponseInterface {
-			return $response->withJSON($request->getQueryParams());
+			return $response->withJSON(array_merge($request->getQueryParams(), (array) $args));
 		}
 
 		/**
@@ -66,7 +66,7 @@
 
 		public static function getRoutes(): array {
 			return [
-				new Route('GET', '/echo', 'getEcho'),
+				new Route('GET', '/echo', 'getEcho', ['addArg' => 'arg']),
 				new Route('POST', '/echo', 'postEcho'),
 				new Route('GET', '/exception', 'getException'),
 				new Route('GET', '/error', 'getError')

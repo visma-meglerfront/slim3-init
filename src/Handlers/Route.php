@@ -5,18 +5,20 @@
 	 * Route
 	 *
 	 * @author  bluefirex
-	 * @version 1.0
+	 * @version 1.1
 	 * @package as.adepto.slim-init.handlers
 	 */
 	class Route {
 		protected $httpMethod;
 		protected $url;
 		protected $classMethod;
+		protected $arguments;
 
-		public function __construct($httpMethod, $url, $classMethod) {
+		public function __construct($httpMethod, $url, $classMethod, array $arguments = []) {
 			$this->httpMethod = $httpMethod;
 			$this->url = $url;
 			$this->classMethod = $classMethod;
+			$this->arguments = $arguments;
 		}
 
 		/**
@@ -44,5 +46,14 @@
 		 */
 		public function getClassMethod() {
 			return $this->classMethod;
+		}
+
+		/**
+		 * Get additional arguments to pass around to SlimInit
+		 *
+		 * @return array
+		 */
+		public function getArguments(): array {
+			return $this->arguments;
 		}
 	}

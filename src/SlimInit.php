@@ -233,8 +233,13 @@
 
 						$this->map([ $route->getHTTPMethod() ], $route->getURL(), function($request, $response, $args) use($handlerClass, $route, $instances) {
 							$method = $route->getClassMethod();
+							$argsObject = self::arrayToObject($args);
 
-							return $instances[$handlerClass]->$method($request, $response, self::arrayToObject($args));
+							foreach ($route->getArguments() as $key => $value) {
+								$argsObject->$key = $value;
+							}
+
+							return $instances[$handlerClass]->$method($request, $response, $argsObject);
 						});
 					}
 				}
