@@ -8,7 +8,7 @@
 	 * An abstract class describing an API-like handler.
 	 *
 	 * @author  bluefirex
-	 * @version 1.0
+	 * @version 1.1
 	 * @package as.adepto.slim-init.handlers
 	 */
 	abstract class Handler {
@@ -21,6 +21,28 @@
 		 */
 		public function __construct(ContainerInterface $container) {
 			$this->container = $container;
+		}
+
+		/**
+		 * Get the container
+		 *
+		 * @return Interop\Container\ContainerInterface
+		 */
+		public function getContainer(): ContainerInterface {
+			return $this->container;
+		}
+
+		/**
+		 * Get the path for a named route.
+		 * This works with all handlers, not just in this handler.
+		 *
+		 * @param  string $name      Name of the Route
+		 * @param  array  $arguments Additional parameters/args
+		 *
+		 * @return string
+		 */
+		public function getPathFor(string $name, array $arguments = []) {
+			return $this->getContainer()->get('router')->pathFor($name, $arguments);
 		}
 
 		/**

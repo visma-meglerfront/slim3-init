@@ -18,7 +18,7 @@
 	 * Slim initialization handling.
 	 *
 	 * @author  bluefirex
-	 * @version 1.0
+	 * @version 1.1
 	 * @package as.adepto.slim-init
 	 */
 	class SlimInit {
@@ -84,9 +84,9 @@
 			/*
 				Add some default exceptions
 			 */
-			$this->setException('Adepto\\Slim3Init\\Exceptions\\InvalidRequestException', 400);
-			$this->setException('Adepto\\Slim3Init\\Exceptions\\UnauthorizedException', 401);
-			$this->setException('Adepto\\Slim3Init\\Exceptions\\AccessDeniedException', 403);
+			$this->setException('Adepto\\SlimInit\\Exceptions\\InvalidRequestException', 400);
+			$this->setException('Adepto\\SlimInit\\Exceptions\\UnauthorizedException', 401);
+			$this->setException('Adepto\\SlimInit\\Exceptions\\AccessDeniedException', 403);
 
 			/*
 				Set an empty debug header (disabling this feature essentially)
@@ -225,22 +225,21 @@
 						$instances[$handlerClass] = new $handlerClass($scope->container);
 					}
 
-					/* @var $config Handlers\Route */
+					/** @var $config Handlers\Route */
 					foreach ($handlerConfig as $route) {
 						if (!$route instanceof Route) {
 							throw new \InvalidArgumentException('Route must be instance of Adepto\\Slim3Init\\Handlers\\Route');
 						}
 
-						$this->map([ $route->getHTTPMethod() ], $route->getURL(), function($request, $response, $args) use($handlerClass, $route, $instances) {
+						$slimRoute = $this->map([ $route->getHTTPMethod() ], $route->getURL(), function($request, $response, $args) use($handlerClass, $route, $instances) {
 							$method = $route->getClassMethod();
-							$argsObject = self::arrayToObject($args);
 
-							foreach ($route->getArguments() as $key => $value) {
-								$argsObject->$key = $value;
-							}
-
-							return $instances[$handlerClass]->$method($request, $response, $argsObject);
+							return $instances[$handlerClass]->$method($request, $response, self::arrayToObject($args));
 						});
+
+						if (!empty($route->getName())) {
+							$slimRoute->setName($route->getName());
+						}
 					}
 				}
 			});
@@ -269,7 +268,7 @@
 		 * 
 		 * @return stdClass
 		 */
-		public static function arrayToObject(array $arr): \stdClass {
+		protected static function arrayToObject(array $arr): \stdClass {
 			$obj = new \stdClass();
 
 			foreach ($arr as $key => $val) {
