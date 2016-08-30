@@ -35,7 +35,7 @@
 		 * @return Psr\Http\Message\ResponseInterface
 		 */
 		public function getNamedRoute(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args): ResponseInterface {
-			return $response->write($this->getContainer()->get('router')->pathFor('get-echo'));
+			return $response->write($this->getPathFor('get-echo'));
 		}
 
 		/**

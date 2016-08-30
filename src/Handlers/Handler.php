@@ -33,6 +33,19 @@
 		}
 
 		/**
+		 * Get the path for a named route.
+		 * This works with all handlers, not just in this handler.
+		 *
+		 * @param  string $name      Name of the Route
+		 * @param  array  $arguments Additional parameters/args
+		 *
+		 * @return string
+		 */
+		public function getPathFor(string $name, array $arguments = []) {
+			return $this->getContainer()->get('router')->pathFor($name, $arguments);
+		}
+
+		/**
 		 * Get the routes for this handler. This has to be an array
 		 * full of {@see Route} objects.
 		 *
