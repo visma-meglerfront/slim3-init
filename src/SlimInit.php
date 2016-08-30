@@ -11,12 +11,14 @@
 		ResponseInterface
 	};
 
+	use Adepto\Slim3Init\Handlers\Route;
+
 	/**
 	 * SlimInit
 	 * Slim initialization handling.
 	 *
 	 * @author  bluefirex
-	 * @version 1.0
+	 * @version 1.1
 	 * @package as.adepto.slim-init
 	 */
 	class SlimInit {
@@ -223,13 +225,21 @@
 						$instances[$handlerClass] = new $handlerClass($scope->container);
 					}
 
-					/* @var $config Handlers\Route */
+					/** @var $config Handlers\Route */
 					foreach ($handlerConfig as $route) {
-						$this->map([ $route->getHTTPMethod() ], $route->getURL(), function($request, $response, $args) use($handlerClass, $route, $instances) {
+						if (!$route instanceof Route) {
+							throw new \InvalidArgumentException('Route must be instance of Adepto\\Slim3Init\\Handlers\\Route');
+						}
+
+						$slimRoute = $this->map([ $route->getHTTPMethod() ], $route->getURL(), function($request, $response, $args) use($handlerClass, $route, $instances) {
 							$method = $route->getClassMethod();
 
 							return $instances[$handlerClass]->$method($request, $response, self::arrayToObject($args));
 						});
+
+						if (!empty($route->getName())) {
+							$slimRoute->setName($route->getName());
+						}
 					}
 				}
 			});

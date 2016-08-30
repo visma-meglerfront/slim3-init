@@ -8,7 +8,7 @@
 	 * An abstract class describing an API-like handler.
 	 *
 	 * @author  bluefirex
-	 * @version 1.0
+	 * @version 1.1
 	 * @package as.adepto.slim-init.handlers
 	 */
 	abstract class Handler {
@@ -21,6 +21,15 @@
 		 */
 		public function __construct(ContainerInterface $container) {
 			$this->container = $container;
+		}
+
+		/**
+		 * Get the container
+		 *
+		 * @return Interop\Container\ContainerInterface
+		 */
+		public function getContainer(): ContainerInterface {
+			return $this->container;
 		}
 
 		/**

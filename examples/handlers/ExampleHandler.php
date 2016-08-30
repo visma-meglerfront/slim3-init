@@ -26,6 +26,19 @@
 		}
 
 		/**
+		 * getNamedRoute
+		 * 
+		 * @param Psr\Http\Message\ServerRequestInterface   $request   Request
+		 * @param Psr\Http\Message\ResponseInterface        $response  Response
+		 * @param \stdClass                                 $args      Arguments
+		 *
+		 * @return Psr\Http\Message\ResponseInterface
+		 */
+		public function getNamedRoute(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args): ResponseInterface {
+			return $response->write($this->getContainer()->get('router')->pathFor('get-echo'));
+		}
+
+		/**
 		 * postEcho
 		 * 
 		 * @param Psr\Http\Message\ServerRequestInterface   $request   Request
@@ -66,8 +79,9 @@
 
 		public static function getRoutes(): array {
 			return [
-				new Route('GET', '/echo', 'getEcho'),
-				new Route('POST', '/echo', 'postEcho'),
+				new Route('GET', '/echo', 'getEcho', ['addArg' => 'arg'], 'get-echo'),
+				new Route('GET', '/named-route', 'getNamedRoute', [], 'get-named-route'),
+				new Route('POST', '/echo', 'postEcho', [], 'post-echo'),
 				new Route('GET', '/exception', 'getException'),
 				new Route('GET', '/error', 'getError')
 			];
