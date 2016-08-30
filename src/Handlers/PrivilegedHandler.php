@@ -42,11 +42,13 @@
 		 *
 		 * @return bool
 		 */
-		public abstract function actionAllowed(string $action, array $data = []): bool;
+		public function actionAllowed(string $action, array $data = []): bool {
+			return $this->getClient()->hasPermission($action, $data);
+		}
 
 		/**
 		 * Force a specific permission and throw an exception if action is not allowed.
-		 * Make sure to override {@link actionAllowed}.
+		 * Make sure to override {@link actionAllowed}, if you need something special.
 		 *
 		 * @param string $action Action to check for
 		 * @param array  $data   Additional data to pass around
