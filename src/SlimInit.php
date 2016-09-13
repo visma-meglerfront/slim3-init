@@ -273,7 +273,7 @@
 		 * 
 		 * @return stdClass
 		 */
-		protected static function arrayToObject(array $arr): \stdClass {
+		public static function arrayToObject(array $arr): \stdClass {
 			$obj = new \stdClass();
 
 			foreach ($arr as $key => $val) {
