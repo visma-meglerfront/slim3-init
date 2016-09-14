@@ -79,6 +79,10 @@
 			return $this->baseURL;
 		}
 
+		protected function sanitizeURL($url) {
+			return preg_replace('#\?.*$#', '', $url);
+		}
+
 		/**
 		 * Get the route for a specific URL, i.e. /groups/3
 		 *
@@ -94,7 +98,7 @@
 					$routeURL = preg_replace('#\{[\S]+:(.*?)\}#', '$1', $route->getURL());
 					$pattern = str_replace('/', '\/', $routeURL);
 
-					if (preg_match('#^' . $pattern . '$#', $url)) {
+					if (preg_match('#^' . $pattern . '$#', $this->sanitizeURL($url))) {
 						$this->routesCache[$url] = $route;
 						break;
 					}
@@ -163,7 +167,7 @@
 			preg_match('#\{([\S]+):.*?\}#', $route->getURL(), $argNames);
 
 			# Then match the actual values
-			preg_match('#^' . $pattern . '$#', $url, $argValues);
+			preg_match('#^' . $pattern . '$#', $this->sanitizeURL($url), $argValues);
 
 			# Unset whole-match part
 			unset($argNames[0]);
