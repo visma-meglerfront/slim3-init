@@ -6,7 +6,7 @@
 	 * Base interface for a permission to something.
 	 *
 	 * @author  bluefirex
-	 * @version 1.0
+	 * @version 2.0
 	 * @package as.adepto.slim-init.client
 	 */
 	interface Permission {
@@ -26,11 +26,4 @@
 		 * @return array
 		 */
 		public function getData(): array;
-
-		/**
-		 * Is this permission allowed?
-		 *
-		 * @return boolean
-		 */
-		public function isAllowed(): bool;
 	}

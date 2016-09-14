@@ -16,10 +16,6 @@
 			return $this->data;
 		}
 
-		public function isAllowed(): bool {
-			return true;
-		}
-
 		public function __toString() {
 			return $this->getName();
 		}
