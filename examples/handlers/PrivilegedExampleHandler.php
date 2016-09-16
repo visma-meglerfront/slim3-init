@@ -52,6 +52,14 @@
 			return $this->getClient()->hasPermission($action, $data);
 		}
 
+		public function onRequest(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args, callable $next): ResponseInterface {
+			if (mt_rand(1, 3) == 2) {
+				throw new Adepto\Slim3Init\Exceptions\AccessDeniedException('Nope');
+			}
+
+			return $next($request, $response, $args);
+		}
+
 		public static function getRoutes(): array {
 			return [
 				new Route('GET', '/permissions', 'getPermissions'),

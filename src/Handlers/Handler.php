@@ -3,12 +3,17 @@
 	
 	use Interop\Container\ContainerInterface;
 
+	use Psr\Http\Message\{
+		ServerRequestInterface,
+		ResponseInterface
+	};
+
 	/**
 	 * Handler
 	 * An abstract class describing an API-like handler.
 	 *
 	 * @author  bluefirex
-	 * @version 1.1
+	 * @version 1.2
 	 * @package as.adepto.slim-init.handlers
 	 */
 	abstract class Handler {
@@ -43,6 +48,21 @@
 		 */
 		public function getPathFor(string $name, array $arguments = []) {
 			return $this->getContainer()->get('router')->pathFor($name, $arguments);
+		}
+
+		/**
+		 * Do something before the request is actually processed by $next (which is your handler's defined function).
+		 * Do NOT forget to call $next($request, $response, $args) when overriding this!!
+		 *
+		 * @param  ServerRequestInterface $request  Slim Request
+		 * @param  ResponseInterface      $response Slim Response
+		 * @param  \stdClass              $args     Arguments
+		 * @param  callable               $next     Your handler's defined function
+		 *
+		 * @return ResponseInterface
+		 */
+		public function onRequest(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args, callable $next): ResponseInterface {
+			return $next($request, $response, $args);
 		}
 
 		/**

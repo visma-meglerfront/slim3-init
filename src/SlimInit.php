@@ -239,7 +239,7 @@
 								$argsObject->$key = $value;
 							}
 
-							return $instances[$handlerClass]->$method($request, $response, $argsObject);
+							return $instances[$handlerClass]->onRequest($request, $response, $argsObject, [ $instances[$handlerClass], $method ]);
 						});
 
 						if (!empty($route->getName())) {
