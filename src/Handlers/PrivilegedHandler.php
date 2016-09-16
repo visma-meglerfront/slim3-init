@@ -64,4 +64,40 @@
 
 			return true;
 		}
+
+		/**
+		 * Force any of the permissions given in $permissions.
+		 * This is a direct call to the client's hasAnyPermission()-method.
+		 *
+		 * @param  array  $permissions Permissions
+		 *
+		 * @throws Adepto\Slim3Init\Exceptions\AccessDeniedException if none of the permissions match
+		 * 
+		 * @return bool
+		 */
+		public function forceAnyPermission(array $permissions): bool {
+			if (!$this->getClient()->hasAnyPermission($permissions)) {
+				throw new AccessDeniedException('You\'re not allowed to perform this action.');
+			}
+
+			return true;
+		}
+
+		/**
+		 * Force all permissions given in $permissions.
+		 * This is a direct call to the client's hasAllPermissions()-method.
+		 *
+		 * @param  array  $permissions Permissions
+		 *
+		 * @throws Adepto\Slim3Init\Exceptions\AccessDeniedException if at least one of the permissions doesn't match
+		 * 
+		 * @return bool
+		 */
+		public function forceAllPermissions(array $permissions): bool {
+			if (!$this->getClient()->hasAllPermissions($permissions)) {
+				throw new AccessDeniedException('You\'re not allowed to perform this action.');
+			}
+
+			return true;
+		}
 	}
