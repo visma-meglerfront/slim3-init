@@ -27,7 +27,7 @@
 			$client = $this->container->{self::CONTAINER_CLIENT};
 
 			if (!$client instanceof Client) {
-				throw new \InvalidArgumentException('Client does not implements Adepto\\SlimInit\\Client\\Client.');
+				throw new \InvalidArgumentException('Client does not implements Adepto\\Slim3Init\\Client\\Client.');
 			}
 
 			return $client;
