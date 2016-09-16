@@ -50,6 +50,28 @@
 		}
 
 		/**
+		 * Only checks the first permission, just for testing this stuff.
+		 *
+		 * @param  array   $names Strings of permission names
+		 *
+		 * @return boolean
+		 */
+		public function hasAnyPermission(array $names): bool {
+			return $this->hasPermission($names[0] ?? 'example.perm');
+		}
+
+		/**
+		 * Only checks the first permission, just for testing this stuff.
+		 *
+		 * @param  array   $names Strings of permission names
+		 *
+		 * @return boolean
+		 */
+		public function hasAllPermissions(array $names): bool {
+			return $this->hasPermission($names[0] ?? 'example.perm');
+		}
+
+		/**
 		 * Example credentials: test : 123456
 		 *
 		 * @param  string $package Package

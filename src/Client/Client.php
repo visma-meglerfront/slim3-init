@@ -6,7 +6,7 @@
 	 * A base interface for a client that can be authorized.
 	 *
 	 * @author  bluefirex
-	 * @version 1.0
+	 * @version 2.0
 	 * @package as.adepto.slim-init.client
 	 */
 	interface Client {
@@ -33,4 +33,22 @@
 		 * @return boolean
 		 */
 		public function hasPermission(string $name, array $data = []): bool;
+
+		/**
+		 * Check whether this client has any of the specified permissions.
+		 *
+		 * @param  array   $permissions Permission Names or {@see Permission} objects
+		 *
+		 * @return boolean
+		 */
+		public function hasAnyPermission(array $permissions): bool;
+
+		/**
+		 * Check whether this client has all of the specified permissions.
+		 *
+		 * @param  array   $permissions Permission Names or {@see Permission} objects
+		 *
+		 * @return boolean
+		 */
+		public function hasAllPermissions(array $permissions): bool;
 	}
