@@ -12,6 +12,8 @@
 		Response
 	};
 
+	use FastRoute\RouteParser\Std as FastRouteParser;
+
 	use Adepto\Slim3Init\{
 		Handlers\Route,
 		Exceptions\InvalidRequestException
@@ -22,15 +24,17 @@
 	 * An adapter for making calls to any {@see Handler} without using actual HTTP requests.
 	 *
 	 * @author  bluefirex
-	 * @version 1.0
+	 * @version 1.1
 	 * @package as.adepto.slim-init
 	 */
 	class HandlerCaller {
 		protected $container;
 		protected $handler;
 		protected $baseURL;
+		protected $routeParser;
 
 		protected $routesCache = [];
+
 
 		/**
 		 * Create a HandlerCaller.
@@ -47,6 +51,7 @@
 
 			$this->handler = new $handlerClass($this->container);
 			$this->baseURL = $baseURL;
+			$this->routeParser = new FastRouteParser();
 		}
 
 		/**
@@ -81,6 +86,37 @@
 		}
 
 		/**
+		 * Parse a route's URL into its arg parts
+		 *
+		 * @param  string $routeURL URL of the route
+		 * @param  string $url      URL of match against
+		 *
+		 * @return array|null {@see FastRoute\RouteParser\Std::parse}
+		 */
+		protected function parseRoute(string $routeURL, string $url) {
+			$parsedRouteURLs = $this->routeParser->parse($routeURL);
+			$sanitizedURL = $this->sanitizeURL($url);
+
+			foreach ($parsedRouteURLs as $parsedRouteURL) {
+				$regex = '';
+
+				foreach ($parsedRouteURL as $part) {
+					if (is_array($part)) {
+						$regex .= $part[1];
+					} else {
+						$regex .= $part;
+					}
+				}
+
+				if (preg_match('#^' . $regex . '$#', $sanitizedURL)) {
+					return $parsedRouteURL;
+				}
+			}
+
+			return null;
+		}
+
+		/**
 		 * Get the route for a specific URL, i.e. /groups/3
 		 *
 		 * @param string $url URL
@@ -94,10 +130,7 @@
 				$routes = get_class($this->handler)::getRoutes();
 
 				foreach ($routes as $route) {
-					$routeURL = preg_replace('#\{[\S]+:(.*?)\}#', '$1', $route->getURL());
-					$pattern = str_replace('/', '\/', $routeURL);
-
-					if (preg_match('#^' . $pattern . '$#', $this->sanitizeURL($url))) {
+					if ($parsedRoute = $this->parseRoute($route->getURL(), $url)) {
 						$this->routesCache[$url] = $route;
 						break;
 					}
@@ -159,26 +192,28 @@
 		 */
 		protected function urlToArgs(string $url): \stdClass {
 			$route = $this->getRouteForURL($url);
+			$parsedRoute = $this->parseRoute($route->getURL(), $url);
 			$args = new \stdClass();
+			$regex = '';
 
-			# Compile pattern to match values first by replacing the labels with nothing
-			$pattern = preg_replace('#\{[\S]+:(.*?)\}#', '($1)', $route->getURL());
-
-			# Temporary storage
 			$argNames = [];
 			$argValues = [];
 
-			# Match the names of the arguments for association
-			preg_match('#\{([\S]+):.*?\}#', $route->getURL(), $argNames);
+			# Build arg names and regex
+			foreach ($parsedRoute as $urlPart) {
+				if (is_array($urlPart)) {
+					$regex .= '(' . $urlPart[1] . ')';
+					$argNames[] = $urlPart[0];
+				} else {
+					$regex .= $urlPart;
+				}
+			}
 
-			# Then match the actual values
-			preg_match('#^' . $pattern . '$#', $this->sanitizeURL($url), $argValues);
-
-			# Unset whole-match part
-			unset($argNames[0]);
+			# Match argument values
+			preg_match('#^' . $regex . '$#', $this->sanitizeURL($url), $argValues);
 			unset($argValues[0]);
 
-			# Combine results
+			# Combine values with names
 			$argsArray = array_combine($argNames, $argValues);
 
 			# Convert to object
