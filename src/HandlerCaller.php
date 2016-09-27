@@ -12,12 +12,9 @@
 		Response
 	};
 
-	use Exceptions\{
-		InvalidRequestException
-	};
-
 	use Adepto\Slim3Init\{
-		Handlers\Route
+		Handlers\Route,
+		Exceptions\InvalidRequestException
 	};
 
 	/**
@@ -88,6 +85,8 @@
 		 *
 		 * @param string $url URL
 		 *
+		 * @throws InvalidRequestException If route could not be found for $url
+		 *
 		 * @return array
 		 */
 		protected function getRouteForURL(string $url): Route {
@@ -105,7 +104,13 @@
 				}
 			}
 
-			return $this->routesCache[$url] ?? [];
+			$route = $this->routesCache[$url];
+
+			if (!$route instanceof Route) {
+				throw new InvalidRequestException('Route for ' . $url . ' not found.');
+			}
+
+			return $this->routesCache[$url];
 		}
 
 		/**
