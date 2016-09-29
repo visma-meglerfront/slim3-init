@@ -13,6 +13,7 @@
 	};
 
 	use FastRoute\RouteParser\Std as FastRouteParser;
+	use Interop\Container\ContainerInterface;
 
 	use Adepto\Slim3Init\{
 		Handlers\Route,
@@ -24,7 +25,7 @@
 	 * An adapter for making calls to any {@see Handler} without using actual HTTP requests.
 	 *
 	 * @author  bluefirex
-	 * @version 1.1
+	 * @version 1.2
 	 * @package as.adepto.slim-init
 	 */
 	class HandlerCaller {
@@ -39,11 +40,12 @@
 		/**
 		 * Create a HandlerCaller.
 		 *
-		 * @param string $baseURL      Base-URL that the handler would normally be called under (no specific request URL!)
-		 * @param string $handlerClass Class Name of the Handler to adapt to
+		 * @param string             $baseURL      Base-URL that the handler would normally be called under (no specific request URL!)
+		 * @param string             $handlerClass Class Name of the Handler to adapt to
+		 * @param ContainerInterface $container    If supplied, this will be used as the container for the handler.
 		 */
-		public function __construct(string $baseURL, $handlerClass) {
-			$this->container = new Container([
+		public function __construct(string $baseURL, $handlerClass, ContainerInterface $container = null) {
+			$this->container = $container ?? new Container([
 				'settings'	=>	[
 					'displayErrorDetails'	=>	true
 				]
