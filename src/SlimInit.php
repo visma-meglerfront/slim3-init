@@ -189,7 +189,7 @@
 				require_once $handlerFile;
 
 				$handlerClass = str_replace('.php', '', basename($handlerFile));
-				$reflectionClass = new ReflectionClass($handlerClass);
+				$reflectionClass = new \ReflectionClass($handlerClass);
 
 				if (!$reflectionClass->isAbstract()) {
 					$this->addHandler($handlerClass);
