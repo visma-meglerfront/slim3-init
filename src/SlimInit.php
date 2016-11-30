@@ -56,7 +56,7 @@
 
 				That's why we're doing things a bit more complex-looking.
 			 */
-			
+
 			$this->container['errorHandler'] = function($c) use($scope) {
 				return function($req, $res, $t) use($scope) {
 					return $scope->handleError($req, $res, $t);
@@ -118,7 +118,7 @@
 			} else {
 				$this->container['debugHeader'] = [
 					'key'		=>	$header,
-					'value'		=>	$expectedValue 
+					'value'		=>	$expectedValue
 				];
 			}
 
@@ -189,7 +189,11 @@
 				require_once $handlerFile;
 
 				$handlerClass = str_replace('.php', '', basename($handlerFile));
-				$this->addHandler($handlerClass);
+				$reflectionClass = new ReflectionClass($handlerClass);
+
+				if (!$reflectionClass->isAbstract()) {
+					$this->addHandler($handlerClass);
+				}
 			}
 
 			return $this;
@@ -270,7 +274,7 @@
 		 * any other function can modify it!
 		 *
 		 * @param array  $arr Array to convert
-		 * 
+		 *
 		 * @return stdClass
 		 */
 		public static function arrayToObject(array $arr): \stdClass {
