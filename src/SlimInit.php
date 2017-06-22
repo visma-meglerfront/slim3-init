@@ -12,6 +12,7 @@
 	};
 
 	use Adepto\Slim3Init\Handlers\Route;
+	use Adepto\Slim3Init\Exceptions\InvalidRouteException;
 
 	/**
 	 * SlimInit
@@ -243,6 +244,10 @@
 								$argsObject->$key = $value;
 							}
 
+							if (!is_callable($method)) {
+								throw new InvalidRouteException($handlerClass . ' defines a route "' . $route->getURL() . '"" for which the handler "' . $route->getClassMethod() . '" is not callable', 1);
+							}
+
 							return $instances[$handlerClass]->onRequest($request, $response, $argsObject, [ $instances[$handlerClass], $method ]);
 						});
 
@@ -298,11 +303,7 @@
 		protected function handleError(ServerRequestInterface $req, ResponseInterface $res, \Throwable $t): ResponseInterface {
 			$headers = $req->getHeaders();
 			$tClass = get_class($t);
-			$statusCode = $this->exceptions[$tClass];
-
-			if (!isset($statusCode)) {
-				$statusCode = 500;
-			}
+			$statusCode = $this->exceptions[$tClass] ?? 500;
 
 			$content = [
 				'status'		=>	'error',
