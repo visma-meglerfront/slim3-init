@@ -244,7 +244,7 @@
 								$argsObject->$key = $value;
 							}
 
-							if (!is_callable($method)) {
+							if (!is_callable([ $instances[$handlerClass], $method ])) {
 								throw new InvalidRouteException($handlerClass . ' defines a route "' . $route->getURL() . '"" for which the handler "' . $route->getClassMethod() . '" is not callable', 1);
 							}
 
