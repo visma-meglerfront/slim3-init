@@ -12,7 +12,7 @@
 	 * Interface indicating that a handler has permissions to check for.
 	 *
 	 * @author  bluefirex
-	 * @version 1.0
+	 * @version 1.1
 	 * @package as.adepto.slim-init.handlers
 	 */
 	abstract class PrivilegedHandler extends Handler {
@@ -31,6 +31,15 @@
 			}
 
 			return $client;
+		}
+
+		/**
+		 * Check if this handler has been given a client through some middleware
+		 *
+		 * @return boolean
+		 */
+		public function hasClient(): bool {
+			return isset($this->container->{self::CONTAINER_CLIENT});
 		}
 
 		/**
