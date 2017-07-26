@@ -310,7 +310,7 @@
 				'message'		=>	$t->getMessage()
 			];
 
-			if ($t->getCode() && $statusCode != 500) {
+			if ($t->getCode()) {
 				$content['code'] = $t->getCode();
 			}
 
