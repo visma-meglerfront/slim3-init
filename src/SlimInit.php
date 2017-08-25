@@ -167,6 +167,10 @@
 		 * @param string $className Class Name
 		 */
 		public function addHandler($className): SlimInit {
+			if (!class_exists($className)) {
+				throw new \InvalidArgumentException('Could not find class ' . $className);
+			}
+
 			$this->handlers[$className] = $className::getRoutes();
 
 			return $this;
@@ -175,6 +179,7 @@
 		/**
 		 * Collect all php files form a directory and put them up as handlers.
 		 * This automatically loads them as well.
+		 * Does not work with namespaced classes.
 		 *
 		 * @param string $dir Directory to look in - NO trailing slash!
 		 */
@@ -184,7 +189,6 @@
 			}
 
 			$handlerFiles = glob($dir . '/*.php');
-			$handlers = [];
 
 			foreach ($handlerFiles as $handlerFile) {
 				require_once $handlerFile;
@@ -194,6 +198,32 @@
 
 				if (!$reflectionClass->isAbstract()) {
 					$this->addHandler($handlerClass);
+				}
+			}
+
+			return $this;
+		}
+
+		public function addPsr4Namespace(string $namespace, string $prefix, string $directory): SlimInit {
+			$remainingNamespace = str_replace($prefix, '', $namespace);
+			$dirPath = str_replace('\\', DIRECTORY_SEPARATOR, $directory . '/' . $remainingNamespace);
+
+			$handlerFiles = glob($dirPath . '/*.php');
+
+			foreach ($handlerFiles as $handlerFile) {
+				require $handlerFile;
+
+				$handlerClass = str_replace('.php', '', basename($handlerFile));
+				$handlerClassPath = $prefix . str_replace(DIRECTORY_SEPARATOR, '\\', $remainingNamespace . '\\' . $handlerClass);
+
+				if (!class_exists($handlerClassPath)) {
+					throw new \InvalidArgumentException('Could not find class "' . $handlerClassPath . '" in ' . $handlerFile);
+				}
+
+				$reflectionClass = new \ReflectionClass($handlerClassPath);
+
+				if (!$reflectionClass->isAbstract()) {
+					$this->addHandler($handlerClassPath);
 				}
 			}
 
