@@ -204,6 +204,19 @@
 			return $this;
 		}
 
+		/**
+		 * Collect all php files from a namespace and put them up as handlers.
+		 * Automatically ignores abstract classes.
+		 *
+		 * Example:
+		 * 		$namespace = Adepto\Slim3Init\Handlers
+		 * 		$prefix = Adepto\Slim3Init\
+		 * 		$directory = /htdocs/adepto-slim3init/src
+		 *
+		 * @param string $namespace Namespace to add, do not end with a backslash!
+		 * @param string $prefix    What is the prefix of this namespace? Include trailing backslash! (works just like in composer)
+		 * @param string $directory How is the prefix mapped to the filesystem? Do not end with a slash!
+		 */
 		public function addPsr4Namespace(string $namespace, string $prefix, string $directory): SlimInit {
 			$remainingNamespace = str_replace($prefix, '', $namespace);
 			$dirPath = str_replace('\\', DIRECTORY_SEPARATOR, $directory . '/' . $remainingNamespace);
