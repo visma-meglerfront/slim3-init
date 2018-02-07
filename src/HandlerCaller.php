@@ -158,7 +158,7 @@
 		protected function getClassMethodForURL(string $url): string {
 			$route = $this->getRouteForURL($url);
 
-			if (!count($route)) {
+			if (!$route) {
 				throw new \BadMethodCallException('Could not find class method in ' . get_class($this->handler) . ' for "' . $url . '"');
 			}
 
