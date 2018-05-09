@@ -224,7 +224,7 @@
 			$handlerFiles = glob($dirPath . '/*.php');
 
 			foreach ($handlerFiles as $handlerFile) {
-				require $handlerFile;
+				require_once $handlerFile;
 
 				$handlerClass = str_replace('.php', '', basename($handlerFile));
 				$handlerClassPath = $prefix . str_replace(DIRECTORY_SEPARATOR, '\\', $remainingNamespace . '\\' . $handlerClass);
