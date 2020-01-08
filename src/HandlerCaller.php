@@ -13,7 +13,7 @@
 	};
 
 	use FastRoute\RouteParser\Std as FastRouteParser;
-	use Interop\Container\ContainerInterface;
+	use Psr\Container\ContainerInterface;
 
 	use Adepto\Slim3Init\{
 		Handlers\Route,

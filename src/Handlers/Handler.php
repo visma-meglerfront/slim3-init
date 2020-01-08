@@ -1,7 +1,7 @@
 <?php
 	namespace Adepto\Slim3Init\Handlers;
 	
-	use Interop\Container\ContainerInterface;
+	use Psr\Container\ContainerInterface;
 
 	use Psr\Http\Message\{
 		ServerRequestInterface,
@@ -31,7 +31,7 @@
 		/**
 		 * Get the container
 		 *
-		 * @return Interop\Container\ContainerInterface
+		 * @return Psr\Container\ContainerInterface
 		 */
 		public function getContainer(): ContainerInterface {
 			return $this->container;
