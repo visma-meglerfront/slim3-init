@@ -164,7 +164,7 @@
 			$routes = $this->getRoutesForURL($url);
 
 			if (empty($method) && !empty($routes)) {
-				return $routes[0];
+				return array_shift($routes);
 			}
 
 			if (empty($routes[$method])) {
@@ -200,7 +200,8 @@
 		 * @return \stdClass
 		 */
 		protected function urlToArgs(string $url): \stdClass {
-			$route = $this->getRouteForURL($url);
+			$routes = $this->getRoutesForURL($url);
+			$route = array_shift($routes);
 			$parsedRoute = $this->parseRoute($route->getURL(), $url);
 			$args = new \stdClass();
 			$regex = '';
