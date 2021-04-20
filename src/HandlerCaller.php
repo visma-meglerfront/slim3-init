@@ -119,29 +119,33 @@
 		}
 
 		/**
-		 * Get the route for a specific URL, i.e. /groups/3
+		 * Get the routes for a specific URL, i.e. /groups/3
 		 *
 		 * @param string $url URL
 		 *
 		 * @throws InvalidRequestException If route could not be found for $url
 		 *
-		 * @return array
+		 * @return Route[]
 		 */
-		protected function getRouteForURL(string $url): Route {
+		protected function getRoutesForURL(string $url): array {
 			if (!isset($this->routesCache[$url])) {
+				/**
+				 * @var Route[] $routes
+				 */
 				$routes = get_class($this->handler)::getRoutes();
 
 				foreach ($routes as $route) {
-					if ($parsedRoute = $this->parseRoute($route->getURL(), $url)) {
-						$this->routesCache[$url] = $route;
-						break;
+					if ($this->parseRoute($route->getURL(), $url)) {
+						if (!isset($this->routesCache[$url])) {
+							$this->routesCache[$url] = [];
+						}
+
+						$this->routesCache[$url][$route->getHTTPMethod()] = $route;
 					}
 				}
 			}
 
-			$route = $this->routesCache[$url];
-
-			if (!$route instanceof Route) {
+			if (empty($this->routesCache[$url])) {
 				throw new InvalidRequestException('Route for ' . $url . ' not found.');
 			}
 
@@ -152,37 +156,40 @@
 		 * Get the class method for a URL.
 		 *
 		 * @param string $url URL
+		 * @param string $method HTTP method
 		 *
 		 * @return string
 		 */
-		protected function getClassMethodForURL(string $url): string {
-			$route = $this->getRouteForURL($url);
+		protected function getClassMethodForURL(string $url, string $method = ''): string {
+			$routes = $this->getRoutesForURL($url);
 
-			if (!$route) {
+			if (empty($method) && !empty($routes)) {
+				return array_shift($routes);
+			}
+
+			if (empty($routes[$method])) {
 				throw new \BadMethodCallException('Could not find class method in ' . get_class($this->handler) . ' for "' . $url . '"');
 			}
 
-			return $route->getClassMethod();
+			return $routes[$method]->getClassMethod();
 		}
 
 		/**
-		 * Get the HTTP method for a URL.
+		 * Throws an exception if HTTP method is not allowed for a URL.
 		 *
 		 * @param string $url    URL
 		 * @param string $method If not empty, checks if $method is allowed and throws InvalidRequestException if not.
 		 *
 		 * @throws InvalidRequestException If $method wasn't empty and HTTP method does not match $method
-		 * 
-		 * @return string
+		 *
+		 * @return void
 		 */
-		protected function getHTTPMethodForURL(string $url, string $method = ''): string {
-			$route = $this->getRouteForURL($url);
+		protected function isHTTPMethodAllowedForURL(string $url, string $method = ''): void {
+			$routes = $this->getRoutesForURL($url);
 
-			if (!empty($method) && $method != $route->getHTTPMethod()) {
+			if (!empty($method) && !array_key_exists($method, $routes)) {
 				throw new InvalidRequestException('Method not allowed: ' . $method);
 			}
-
-			return $route->getHTTPMethod();
 		}
 
 		/**
@@ -193,7 +200,8 @@
 		 * @return \stdClass
 		 */
 		protected function urlToArgs(string $url): \stdClass {
-			$route = $this->getRouteForURL($url);
+			$routes = $this->getRoutesForURL($url);
+			$route = array_shift($routes);
 			$parsedRoute = $this->parseRoute($route->getURL(), $url);
 			$args = new \stdClass();
 			$regex = '';
@@ -257,8 +265,8 @@
 		 * @return string
 		 */
 		protected function doRequest(string $method, string $url, array $headers, $body, array $files = []): string {
-			$this->getHTTPMethodForURL($url, $method);
-			$classMethod = $this->getClassMethodForURL($url);
+			$this->isHTTPMethodAllowedForURL($url, $method);
+			$classMethod = $this->getClassMethodForURL($url, $method);
 
 			// if $body is an array, build a proper request body
 			if (is_array($body)) {
