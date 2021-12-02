@@ -1,24 +1,18 @@
 <?php
 	namespace Adepto\Slim3Init;
 
-	use Slim\{
-		Container
+	use Adepto\Slim3Init\Handlers\{
+		Handler,
+		Route
 	};
 
-	use Slim\Http\{
-		Uri,
-		Headers,
-		Request,
-		Response
-	};
-
+	use Adepto\Slim3Init\Exceptions\InvalidRequestException;
+	use Slim\Psr7\Factory\UriFactory;
+	use Slim\Psr7\Headers;
 	use FastRoute\RouteParser\Std as FastRouteParser;
-	use Psr\Container\ContainerInterface;
 
-	use Adepto\Slim3Init\{
-		Handlers\Route,
-		Exceptions\InvalidRequestException
-	};
+	use BadMethodCallException;
+	use stdClass;
 
 	/**
 	 * HandlerCaller
@@ -36,20 +30,15 @@
 
 		protected $routesCache = [];
 
-
 		/**
 		 * Create a HandlerCaller.
 		 *
-		 * @param string             $baseURL      Base-URL that the handler would normally be called under (no specific request URL!)
-		 * @param string             $handlerClass Class Name of the Handler to adapt to
-		 * @param ContainerInterface $container    If supplied, this will be used as the container for the handler.
+		 * @param string            $baseURL      Base-URL that the handler would normally be called under (no specific request URL!)
+		 * @param string            $handlerClass Class Name of the Handler to adapt to
+		 * @param Container|null    $container    If supplied, this will be used as the container for the handler.
 		 */
-		public function __construct(string $baseURL, $handlerClass, ContainerInterface $container = null) {
-			$this->container = $container ?? new Container([
-				'settings'	=>	[
-					'displayErrorDetails'	=>	true
-				]
-			]);
+		public function __construct(string $baseURL, string $handlerClass, Container $container = null) {
+			$this->container = $container ?? new Container();
 
 			$this->handler = new $handlerClass($this->container);
 			$this->baseURL = $baseURL;
@@ -59,7 +48,7 @@
 		/**
 		 * Get the slim container for this caller.
 		 *
-		 * @return Slim\Container
+		 * @return Container
 		 */
 		public function getContainer(): Container {
 			return $this->container;
@@ -71,7 +60,7 @@
 		 * @return Handler
 		 */
 		public function getHandler(): Handler {
-			return $this->Handler;
+			return $this->handler;
 		}
 
 		/**
@@ -93,9 +82,9 @@
 		 * @param  string $routeURL URL of the route
 		 * @param  string $url      URL of match against
 		 *
-		 * @return array|null {@see FastRoute\RouteParser\Std::parse}
+		 * @return array|null {@see FastRouteParser::parse}
 		 */
-		protected function parseRoute(string $routeURL, string $url) {
+		protected function parseRoute(string $routeURL, string $url): ?array {
 			$parsedRouteURLs = $this->routeParser->parse($routeURL);
 			$sanitizedURL = $this->sanitizeURL($url);
 
@@ -129,10 +118,9 @@
 		 */
 		protected function getRoutesForURL(string $url): array {
 			if (!isset($this->routesCache[$url])) {
-				/**
-				 * @var Route[] $routes
-				 */
-				$routes = get_class($this->handler)::getRoutes();
+				/** @var Handler $class */
+				$class = get_class($this->handler);
+				$routes = $class::getRoutes();
 
 				foreach ($routes as $route) {
 					if ($this->parseRoute($route->getURL(), $url)) {
@@ -155,20 +143,23 @@
 		/**
 		 * Get the class method for a URL.
 		 *
-		 * @param string $url URL
+		 * @param string $url    URL
 		 * @param string $method HTTP method
 		 *
 		 * @return string
+		 * @throws InvalidRequestException
 		 */
 		protected function getClassMethodForURL(string $url, string $method = ''): string {
 			$routes = $this->getRoutesForURL($url);
 
 			if (empty($method) && !empty($routes)) {
-				return array_shift($routes);
+				$route = array_shift($routes);
+
+				return $route->getClassMethod();
 			}
 
 			if (empty($routes[$method])) {
-				throw new \BadMethodCallException('Could not find class method in ' . get_class($this->handler) . ' for "' . $url . '"');
+				throw new BadMethodCallException('Could not find class method in ' . get_class($this->handler) . ' for "' . $url . '"');
 			}
 
 			return $routes[$method]->getClassMethod();
@@ -197,13 +188,13 @@
 		 *
 		 * @param string $url URL
 		 *
-		 * @return \stdClass
+		 * @return stdClass
+		 * @throws InvalidRequestException
 		 */
-		protected function urlToArgs(string $url): \stdClass {
+		protected function urlToArgs(string $url): stdClass {
 			$routes = $this->getRoutesForURL($url);
 			$route = array_shift($routes);
 			$parsedRoute = $this->parseRoute($route->getURL(), $url);
-			$args = new \stdClass();
 			$regex = '';
 
 			$argNames = [];
@@ -231,11 +222,11 @@
 		}
 
 		/**
-		 * Convert an headers array to a {@see Slim\Http\Headers} collection.
+		 * Convert an headers array to a {@see Headers} collection.
 		 *
 		 * @param array $headers Headers
 		 *
-		 * @return Slim\Http\Headers
+		 * @return Headers
 		 */
 		protected function headerArrayToCollection(array $headers): Headers {
 			$collection = new Headers();
@@ -243,10 +234,10 @@
 			foreach ($headers as $headerKey => $value) {
 				if (is_array($value)) {
 					foreach ($value as $v) {
-						$collection->add($headerKey, $v);
+						$collection->addHeader($headerKey, $v);
 					}
 				} else {
-					$collection->set($headerKey, $value);
+					$collection->setHeader($headerKey, $value);
 				}
 			}
 
@@ -263,6 +254,7 @@
 		 * @param array  $files   Files to send, default = []
 		 *
 		 * @return string
+		 * @throws InvalidRequestException
 		 */
 		protected function doRequest(string $method, string $url, array $headers, $body, array $files = []): string {
 			$this->isHTTPMethodAllowedForURL($url, $method);
@@ -278,10 +270,10 @@
 				}
 			}
 
-			$uri = Uri::createFromString($this->getBaseURL() . $url);
+			$uri = (new UriFactory())->createUri($this->getBaseURL() . $url);
 			$body = new SlimMockBody($body);
 			$args = $this->urlToArgs($url);
-			$request = new Request($method, $uri, $this->headerArrayToCollection($headers), $cookies = [], $serverParams = [], $body, $files = []);
+			$request = new Request($method, $uri, $this->headerArrayToCollection($headers), [], [], $body, $files);
 			$response = new Response();
 
 			return (string) $this->handler->$classMethod($request, $response, $args)->getBody();
@@ -294,6 +286,7 @@
 		 * @param array  $headers Headers, default = []
 		 *
 		 * @return string
+		 * @throws InvalidRequestException
 		 */
 		public function get(string $url, array $headers = []): string {
 			return $this->doRequest('GET', $url, $headers, '', []);
@@ -307,6 +300,7 @@
 		 * @param mixed  $body    If array, this is converted to JSON or FORM (depending on Content-Type header). If string, it's sent raw.
 		 *
 		 * @return string
+		 * @throws InvalidRequestException
 		 */
 		public function post(string $url, array $headers, $body): string {
 			return $this->doRequest('POST', $url, $headers, $body, []);
@@ -321,6 +315,7 @@
 		 * @param array  $files   Files to send, default = []
 		 *
 		 * @return string
+		 * @throws InvalidRequestException
 		 */
 		public function put(string $url, array $headers, $body, array $files = []): string {
 			return $this->doRequest('PUT', $url, $headers, $body, $files);
@@ -335,21 +330,23 @@
 		 * @param array  $files   Files to send, default = []
 		 *
 		 * @return string
+		 * @throws InvalidRequestException
 		 */
-		public function patch(string $url, array $headers, $body, array $files = []) {
+		public function patch(string $url, array $headers, $body, array $files = []): string {
 			return $this->doRequest('PATCH', $url, $headers, $body, $files);
 		}
 
 		/**
 		 * Make a DELETE request to $url with $headers and $body.
 		 *
-		 * @param string $url     URL relative to {@see $this->getBaseURL()}
-		 * @param array  $headers Headers
-		 * @param string $body    If array, this is converted to JSON or FORM (depending on Content-Type header). If string, it's sent raw.
+		 * @param string        $url     URL relative to {@see $this->getBaseURL()}
+		 * @param array         $headers Headers
+		 * @param string|array  $body    If array, this is converted to JSON or FORM (depending on Content-Type header). If string, it's sent raw.
 		 *
 		 * @return string
+		 * @throws InvalidRequestException
 		 */
-		public function delete(string $url, array $headers, $body = '') {
+		public function delete(string $url, array $headers, $body = ''): string {
 			return $this->doRequest('DELETE', $url, $headers, $body);
 		}
 	}

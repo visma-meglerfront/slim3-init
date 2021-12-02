@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
-<ruleset name="Adepto PHP Standards">
-	<description>Adepto PHP Standards</description>
+<ruleset name="Meglerfront PHP Standards">
+	<description>Meglerfront PHP Standards</description>
 
 	<!-- display progress -->
 	<arg value="p" />

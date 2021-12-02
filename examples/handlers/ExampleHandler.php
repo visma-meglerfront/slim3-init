@@ -4,94 +4,93 @@
 	use Adepto\Slim3Init\{
 		Handlers\Handler,
 		Handlers\Route,
-		Exceptions\InvalidRequestException
-	};
-
-	use Psr\Http\Message\{
-		ServerRequestInterface,
-		ResponseInterface
+		Exceptions\InvalidRequestException,
+		Request,
+		Response
 	};
 
 	class ExampleHandler extends Handler {
 
 		/**
 		 * getEcho
-		 * 
-		 * @param Psr\Http\Message\ServerRequestInterface   $request   Request
-		 * @param Psr\Http\Message\ResponseInterface        $response  Response
-		 * @param \stdClass                                 $args      Arguments
 		 *
-		 * @return Psr\Http\Message\ResponseInterface
+		 * @param          $request   Request
+		 * @param Response $response  Response
+		 * @param stdClass $args      Arguments
+		 *
+		 * @return Response
 		 */
-		public function getEcho(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args): ResponseInterface {
-			return $response->withJSON($request->getQueryParams());
+		public function getEcho(Request $request, Response $response, stdClass $args): Response {
+			return $response->withJson($request->getQueryParams());
 		}
 
 		/**
 		 * getNamedRoute
-		 * 
-		 * @param Psr\Http\Message\ServerRequestInterface   $request   Request
-		 * @param Psr\Http\Message\ResponseInterface        $response  Response
-		 * @param \stdClass                                 $args      Arguments
 		 *
-		 * @return Psr\Http\Message\ResponseInterface
+		 * @param          $request   Request
+		 * @param Response $response  Response
+		 * @param stdClass $args      Arguments
+		 *
+		 * @return Response
+		 *
+		 * @throws
 		 */
-		public function getNamedRoute(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args): ResponseInterface {
+		public function getNamedRoute(Request $request, Response $response, stdClass $args): Response {
 			return $response->write($this->getPathFor('get-echo'));
 		}
 
 		/**
 		 * postEcho
-		 * 
-		 * @param Psr\Http\Message\ServerRequestInterface   $request   Request
-		 * @param Psr\Http\Message\ResponseInterface        $response  Response
-		 * @param \stdClass                                 $args      Arguments
 		 *
-		 * @return Psr\Http\Message\ResponseInterface
+		 * @param          $request  Request
+		 * @param Response $response Response
+		 * @param stdClass $args     Arguments
+		 *
+		 * @return Response
 		 */
-		public function postEcho(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args): ResponseInterface {
-			return $response->withJSON($request->getParsedBody());
+		public function postEcho(Request $request, Response $response, stdClass $args): Response {
+			return $response->withJson($request->getParsedBody());
 		}
 
 		/**
 		 * getException
-		 * 
-		 * @param Psr\Http\Message\ServerRequestInterface   $request   Request
-		 * @param Psr\Http\Message\ResponseInterface        $response  Response
-		 * @param \stdClass                                 $args      Arguments
 		 *
-		 * @return Psr\Http\Message\ResponseInterface
+		 * @param          $request   Request
+		 * @param Response $response  Response
+		 * @param stdClass $args      Arguments
+		 *
+		 * @return Response
 		 */
-		public function getException(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args): ResponseInterface {
+		public function getException(Request $request, Response $response, stdClass $args): Response {
 			throw new InvalidRequestException('Halp!', 20);
 		}
 
 		/**
 		 * getError
-		 * 
-		 * @param Psr\Http\Message\ServerRequestInterface   $request   Request
-		 * @param Psr\Http\Message\ResponseInterface        $response  Response
-		 * @param \stdClass                                 $args      Arguments
 		 *
-		 * @return Psr\Http\Message\ResponseInterface
+		 * @param          $request   Request
+		 * @param Response $response  Response
+		 * @param stdClass $args      Arguments
+		 *
+		 * @return Response
 		 */
-		public function getError(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args): ResponseInterface {
+		public function getError(Request $request, Response $response, stdClass $args): Response {
 			throw new Error('Halp!', 20);
 		}
 
 		/**
 		 * getCaller
-		 * 
-		 * @param Psr\Http\Message\ServerRequestInterface   $request   Request
-		 * @param Psr\Http\Message\ResponseInterface        $response  Response
-		 * @param \stdClass                                 $args      Arguments
 		 *
-		 * @return Psr\Http\Message\ResponseInterface
+		 * @param Request  $request  Request
+		 * @param Response $response Response
+		 * @param stdClass $args     Arguments
+		 *
+		 * @return Response
 		 */
-		public function getCaller(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args): ResponseInterface {
+		public function getCaller(Request $request, Response $response, stdClass $args): Response {
 			$caller = new HandlerCaller('/', ExampleHandler::class);
 
-			return $response->withJSON($caller->get('/echo?calledBy=ExampleHandler'));
+			return $response->withJson($caller->get('/echo?calledBy=ExampleHandler'));
 		}
 
 		public static function getRoutes(): array {

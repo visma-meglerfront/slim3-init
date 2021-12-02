@@ -2,10 +2,11 @@
 	namespace Adepto\Slim3Init\Handlers;
 
 	use Adepto\Slim3Init\{
-		Handlers\Handler,
 		Client\Client,
 		Exceptions\AccessDeniedException
 	};
+
+	use InvalidArgumentException;
 
 	/**
 	 * PrivilegedHandler
@@ -21,13 +22,13 @@
 		/**
 		 * Get the client currently using this handler.
 		 *
-		 * @return Adepto\Slim3Init\Client\Client
+		 * @return Client
 		 */
-		public function getClient() {
-			$client = $this->container->{self::CONTAINER_CLIENT};
+		public function getClient(): Client {
+			$client = $this->container[self::CONTAINER_CLIENT];
 
 			if (!$client instanceof Client) {
-				throw new \InvalidArgumentException('Client does not implements Adepto\\Slim3Init\\Client\\Client.');
+				throw new InvalidArgumentException('Client does not implements Adepto\\Slim3Init\\Client\\Client.');
 			}
 
 			return $client;
@@ -62,8 +63,8 @@
 		 * @param string $action Action to check for
 		 * @param array  $data   Additional data to pass around
 		 *
-		 * @throws Adepto\Slim3Init\Exceptions\AccessDeniedException if action is not allowed
-		 * 
+		 * @throws AccessDeniedException if action is not allowed
+		 *
 		 * @return bool
 		 */
 		public function forcePermission(string $action, array $data = []): bool {
@@ -80,8 +81,8 @@
 		 *
 		 * @param  array  $permissions Permissions
 		 *
-		 * @throws Adepto\Slim3Init\Exceptions\AccessDeniedException if none of the permissions match
-		 * 
+		 * @throws AccessDeniedException if none of the permissions match
+		 *
 		 * @return bool
 		 */
 		public function forceAnyPermission(array $permissions): bool {
@@ -98,8 +99,8 @@
 		 *
 		 * @param  array  $permissions Permissions
 		 *
-		 * @throws Adepto\Slim3Init\Exceptions\AccessDeniedException if at least one of the permissions doesn't match
-		 * 
+		 * @throws AccessDeniedException if at least one of the permissions doesn't match
+		 *
 		 * @return bool
 		 */
 		public function forceAllPermissions(array $permissions): bool {

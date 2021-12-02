@@ -28,7 +28,7 @@
 		 *
 		 * @return string
 		 */
-		public function getHTTPMethod() {
+		public function getHTTPMethod(): string {
 			return $this->httpMethod;
 		}
 
@@ -46,7 +46,7 @@
 		 *
 		 * @return string
 		 */
-		public function getClassMethod() {
+		public function getClassMethod(): string {
 			return $this->classMethod;
 		}
 		/**

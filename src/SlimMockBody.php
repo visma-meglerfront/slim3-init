@@ -1,7 +1,7 @@
 <?php
 	namespace Adepto\Slim3Init;
 
-	use Slim\Http\Stream;
+	use Slim\Psr7\Stream;
 
 	/**
 	 * SlimMockBody
@@ -20,4 +20,4 @@
 
 			parent::__construct($stream);
 		}
-	} 
+	}

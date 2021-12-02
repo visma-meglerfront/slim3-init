@@ -7,6 +7,9 @@
 
 	class APIBasicAuth extends BasicAuth {
 
+		/**
+		 * @throws UnauthorizedException
+		 */
 		protected function authorize(array $credentials): array {
 			// Retrieve client
 			$client = APIClient::fromPackageAndKey($credentials['username'], $credentials['password']);

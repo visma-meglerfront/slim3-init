@@ -1,12 +1,20 @@
 <?php
 	namespace Adepto\Slim3Init\Handlers;
-	
-	use Psr\Container\ContainerInterface;
 
-	use Psr\Http\Message\{
-		ServerRequestInterface,
-		ResponseInterface
+	use Adepto\Slim3Init\{
+		Container,
+		Request,
+		Response
 	};
+
+	use Psr\Container\{
+		ContainerExceptionInterface,
+		NotFoundExceptionInterface
+	};
+
+	use Slim\Interfaces\RouteParserInterface;
+	use RuntimeException;
+	use stdClass;
 
 	/**
 	 * Handler
@@ -22,18 +30,18 @@
 		/**
 		 * Create a handler with a Slim container.
 		 *
-		 * @param ContainerInterface $container
+		 * @param Container $container
 		 */
-		public function __construct(ContainerInterface $container) {
+		public function __construct(Container $container) {
 			$this->container = $container;
 		}
 
 		/**
 		 * Get the container
 		 *
-		 * @return Psr\Container\ContainerInterface
+		 * @return Container
 		 */
-		public function getContainer(): ContainerInterface {
+		public function getContainer(): Container {
 			return $this->container;
 		}
 
@@ -41,27 +49,34 @@
 		 * Get the path for a named route.
 		 * This works with all handlers, not just in this handler.
 		 *
-		 * @param  string $name      Name of the Route
-		 * @param  array  $arguments Additional parameters/args
+		 * @param string $name      Name of the Route
+		 * @param array  $arguments Additional parameters/args
 		 *
 		 * @return string
+		 *
+		 * @throws NotFoundExceptionInterface   If router was not found
+		 * @throws RuntimeException             If route was not found
+		 * @throws ContainerExceptionInterface  If there was an error with the container
 		 */
-		public function getPathFor(string $name, array $arguments = []) {
-			return $this->getContainer()->get('router')->pathFor($name, $arguments);
+		public function getPathFor(string $name, array $arguments = []): string {
+			/** @var RouteParserInterface $router */
+			$router = $this->getContainer()->get('router');
+
+			return $router->urlFor($name, $arguments);
 		}
 
 		/**
 		 * Do something before the request is actually processed by $next (which is your handler's defined function).
 		 * Do NOT forget to call $next($request, $response, $args) when overriding this!!
 		 *
-		 * @param  ServerRequestInterface $request  Slim Request
-		 * @param  ResponseInterface      $response Slim Response
-		 * @param  \stdClass              $args     Arguments
-		 * @param  callable               $next     Your handler's defined function
+		 * @param Request  $request  Slim Request
+		 * @param Response $response Slim Response
+		 * @param stdClass $args     Arguments
+		 * @param callable $next     Your handler's defined function
 		 *
-		 * @return ResponseInterface
+		 * @return Response
 		 */
-		public function onRequest(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args, callable $next): ResponseInterface {
+		public function onRequest(Request $request, Response $response, stdClass $args, callable $next): Response {
 			return $next($request, $response, $args);
 		}
 

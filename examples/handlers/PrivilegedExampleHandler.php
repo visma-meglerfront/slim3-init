@@ -1,26 +1,23 @@
 <?php
 	use Adepto\Slim3Init\{
 		Handlers\PrivilegedHandler,
-		Handlers\Route
-	};
-
-	use Psr\Http\Message\{
-		ServerRequestInterface,
-		ResponseInterface
+		Handlers\Route,
+		Request,
+		Response
 	};
 
 	class PrivilegedExampleHandler extends PrivilegedHandler {
 
 		/**
 		 * getPermissions
-		 * 
-		 * @param Psr\Http\Message\ServerRequestInterface   $request   Request
-		 * @param Psr\Http\Message\ResponseInterface        $response  Response
-		 * @param \stdClass                                 $args      Arguments
 		 *
-		 * @return Psr\Http\Message\ResponseInterface
+		 * @param Request  $request  Request
+		 * @param Response $response Response
+		 * @param stdClass $args     Arguments
+		 *
+		 * @return Response
 		 */
-		public function getPermissions(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args): ResponseInterface {
+		public function getPermissions(Request $request, Response $response, stdClass $args): Response {
 			$perms = [];
 
 			foreach ($this->getClient()->getPermissions() as $perm) {
@@ -35,14 +32,14 @@
 
 		/**
 		 * getData
-		 * 
-		 * @param Psr\Http\Message\ServerRequestInterface   $request   Request
-		 * @param Psr\Http\Message\ResponseInterface        $response  Response
-		 * @param \stdClass                                 $args      Arguments
 		 *
-		 * @return Psr\Http\Message\ResponseInterface
+		 * @param Request  $request  Request
+		 * @param Response $response Response
+		 * @param stdClass $args     Arguments
+		 *
+		 * @return Response
 		 */
-		public function getData(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args): ResponseInterface {
+		public function getData(Request $request, Response $response, \stdClass $args): Response {
 			$this->forcePermission('example.perm', array_diff((array) $args, [2]));
 
 			return $response;
@@ -52,7 +49,7 @@
 			return $this->getClient()->hasPermission($action, $data);
 		}
 
-		public function onRequest(ServerRequestInterface $request, ResponseInterface $response, \stdClass $args, callable $next): ResponseInterface {
+		public function onRequest(Request $request, Response $response, stdClass $args, callable $next): Response {
 			if (mt_rand(1, 3) == 2) {
 				throw new Adepto\Slim3Init\Exceptions\AccessDeniedException('Nope');
 			}

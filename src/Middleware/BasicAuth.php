@@ -1,25 +1,24 @@
 <?php
 	namespace Adepto\Slim3Init\Middleware;
 
-	use Psr\Container\ContainerInterface;
-
-	use Psr\Http\Message\{
-		ServerRequestInterface,
-		ResponseInterface
-	};
 
 	use Adepto\Slim3Init\{
-		Client\Client,
+		Container,
 		Exceptions\InvalidRequestException,
-		Exceptions\UnauthorizedException
+		Exceptions\UnauthorizedException,
+		Request,
+		Response
 	};
+
+	use Psr\Http\Message\ResponseInterface;
+	use Psr\Http\Server\RequestHandlerInterface;
 
 	/**
 	 * BasicAuth
 	 * HTTP authorization using Basic.
 	 *
 	 * @author  bluefirex
-	 * @version 1.0
+	 * @version 3.0
 	 * @package as.adepto.slim-init.middleware
 	 */
 	abstract class BasicAuth {
@@ -30,7 +29,7 @@
 		protected $container;
 		protected $realm;
 
-		public function __construct(ContainerInterface $container, $realm = 'API') {
+		public function __construct(Container $container, string $realm = 'API') {
 			$this->container = $container;
 			$this->realm = $realm;
 		}
@@ -39,11 +38,12 @@
 		 * Parse Basic-credentials
 		 * Those credentials are base64-encoded strings of colon-separated credentials.
 		 *
-		 * @param ServerRequestInterface $request Request
+		 * @param Request $request Request
 		 *
 		 * @return array                          [ 'username' => '...', 'password' => '...' ]
+		 * @throws InvalidRequestException
 		 */
-		protected function parseCredentials(ServerRequestInterface $request): array {
+		protected function parseCredentials(Request $request): array {
 			// See if header is present at all
 			if (!$request->hasHeader('Authorization')) {
 				throw new InvalidRequestException('Authorization header missing.', self::EXCEPTION_AUTH_MISSING);
@@ -51,7 +51,7 @@
 
 			// See if header is present only once
 			$authHeader = $request->getHeader('Authorization');
-			
+
 			if (count($authHeader) > 1) {
 				throw new InvalidRequestException('Too much authorization information.', self::EXCEPTION_AUTH_OVERLOAD);
 			}
@@ -89,13 +89,16 @@
 		/**
 		 * Add the WWW-Authenticate header to a response.
 		 *
-		 * @param ResponseInterface $response Response
+		 * @param Response $response Response
 		 */
-		protected function addAuthorizationHeader(ResponseInterface $response) {
+		protected function addAuthorizationHeader(Response $response): Response {
 			return $response->withHeader('WWW-Authenticate', 'Basic realm="' . $this->realm . ', please authenticate yourself."');
 		}
 
-		public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next) {
+		/**
+		 * @throws InvalidRequestException
+		 */
+		public function __invoke(Request $request, RequestHandlerInterface $handler): ResponseInterface {
 			try {
 				// Parse
 				$credentials = $this->parseCredentials($request);
@@ -109,27 +112,27 @@
 			} catch (InvalidRequestException $e) {
 				switch ($e->getCode()) {
 					case self::EXCEPTION_AUTH_MISSING:
-						$response = $this->addAuthorizationHeader($response)->withJson([
+						$response = new Response();
+
+						return $this->addAuthorizationHeader($response)->withJson([
 							'status'	=>	'error',
 							'message'	=>	'No authorization provided.'
 						], 401);
-
-						return $response;
 
 					default:
 						// Let the handler handle it
 						throw $e;
 				}
 			} catch (UnauthorizedException $e) {
-				$response = $this->addAuthorizationHeader($response)->withJson([
+				$response = new Response();
+
+				return $this->addAuthorizationHeader($response)->withJson([
 					'status'	=>	'error',
 					'message'	=>	$e->getMessage()
 				], 401);
-
-				return $response;
 			}
 
 			// Next!
-			return $next($request, $response);
+			return $handler->handle($request);
 		}
 	}

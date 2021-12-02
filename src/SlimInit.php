@@ -1,25 +1,33 @@
 <?php
 	namespace Adepto\Slim3Init;
 
-	use Slim\{
-		Container,
-		App
-	};
-
-	use Psr\Http\Message\{
-		ServerRequestInterface,
-		ResponseInterface
-	};
-
 	use Adepto\Slim3Init\Handlers\Route;
 	use Adepto\Slim3Init\Exceptions\InvalidRouteException;
+
+	use Psr\Http\Message\ServerRequestInterface;
+	use Slim\App;
+
+	use Slim\Exception\{
+		HttpMethodNotAllowedException,
+		HttpNotFoundException
+	};
+
+	use Slim\Factory\AppFactory;
+	use Slim\Factory\Psr17\Psr17FactoryProvider;
+	use Slim\Routing\RouteContext;
+
+	use stdClass;
+	use Throwable;
+	use InvalidArgumentException;
+	use ReflectionClass;
+	use ReflectionException;
 
 	/**
 	 * SlimInit
 	 * Slim initialization handling.
 	 *
 	 * @author  bluefirex
-	 * @version 1.1
+	 * @version 2.0
 	 * @package as.adepto.slim-init
 	 */
 	class SlimInit {
@@ -38,49 +46,19 @@
 		 *     - AccessDeniedException: 403
 		 */
 		public function __construct() {
-			$scope = $this;
-
 			$this->exceptions = [];
 			$this->handlers = [];
 			$this->middleware = [];
+			$this->container = new Container();
 
-			$this->container = new Container([
-				'settings'	=>	[
-					'displayErrorDetails'	=>	true
-				]
-			]);
+			AppFactory::setContainer($this->container);
+			Psr17FactoryProvider::addFactory(SlimInitPsr17Factory::class);
 
-			/*
-				Quick info on the handlers:
-				We could just return [$scope, 'whateverHandler'] but then we'd have to make
-				the handler methods public because Slim is calling them from outside (obviously).
+			$this->app = AppFactory::create();
+			$this->app->addBodyParsingMiddleware();
+			$this->app->addRoutingMiddleware();
 
-				That's why we're doing things a bit more complex-looking.
-			 */
-
-			$this->container['errorHandler'] = function($c) use($scope) {
-				return function($req, $res, $t) use($scope) {
-					return $scope->handleError($req, $res, $t);
-				};
-			};
-
-			$this->container['phpErrorHandler'] = function($c) use($scope) {
-				return function($req, $res, $t) use($scope) {
-					return $scope->handleError($req, $res, $t);
-				};
-			};
-
-			$this->container['notFoundHandler'] = function($c) use($scope) {
-				return function($req, $res) use($scope) {
-					return $scope->handleNotFound($req, $res);
-				};
-			};
-
-			$this->container['notAllowedHandler'] = function($c) use($scope) {
-				return function ($req, $res, $methods) use($scope) {
-					return $scope->handleMethodNotAllowed($req, $res, $methods);
-				};
-			};
+			$this->container->set('router', $this->app->getRouteCollector()->getRouteParser());
 
 			/*
 				Add some default exceptions
@@ -92,16 +70,29 @@
 			/*
 				Set an empty debug header (disabling this feature essentially)
 			 */
-			$this->setDebugHeader('', '');
+			$this->setDebugHeader('');
 		}
 
 		/**
 		 * Get the Slim container.
 		 *
-		 * @return Slim\Container
+		 * @return Container
 		 */
 		public function getContainer(): Container {
 			return $this->container;
+		}
+
+		/**
+		 * Set the base path. This is required if Slim is running on a path that is not "/"
+		 *
+		 * @param string $path
+		 *
+		 * @return $this
+		 */
+		public function setBasePath(string $path): self {
+			$this->app->setBasePath($path);
+
+			return $this;
 		}
 
 		/**
@@ -115,12 +106,12 @@
 		 */
 		public function setDebugHeader(string $header, string $expectedValue = ''): SlimInit {
 			if (empty($header)) {
-				unset($this->container['debugHeader']);
+				$this->container->set('debugHeader', null);
 			} else {
-				$this->container['debugHeader'] = [
+				$this->container->set('debugHeader', [
 					'key'		=>	$header,
 					'value'		=>	$expectedValue
-				];
+				]);
 			}
 
 			return $this;
@@ -129,19 +120,17 @@
 		/**
 		 * Set the status code for an exception.
 		 *
-		 * @param string|array $ex         Exception Class(es)
-		 * @param int    $statusCode HTTP status code
+		 * @param string|array                  $ex                     Exception Class(es)
+		 * @param int                           $statusCode             HTTP status code
 		 */
-		public function setException($ex, $statusCode): SlimInit {
+		public function setException($ex, int $statusCode): SlimInit {
 			if (is_array($ex)) {
 				foreach ($ex as $e) {
 					$this->setException($e, $statusCode);
 				}
-
-				return $this;
+			} else {
+				$this->exceptions[$ex] = $statusCode;
 			}
-
-			$this->exceptions[$ex] = $statusCode;
 
 			return $this;
 		}
@@ -152,7 +141,7 @@
 		 * @param string $key   Key
 		 * @param mixed  $value Value
 		 */
-		public function addToContainer($key, $value): SlimInit {
+		public function addToContainer(string $key, $value): SlimInit {
 			$this->container[$key] = $value;
 
 			return $this;
@@ -166,9 +155,9 @@
 		 *
 		 * @param string $className Class Name
 		 */
-		public function addHandler($className): SlimInit {
+		public function addHandler(string $className): SlimInit {
 			if (!class_exists($className)) {
-				throw new \InvalidArgumentException('Could not find class ' . $className);
+				throw new InvalidArgumentException('Could not find class ' . $className);
 			}
 
 			$this->handlers[$className] = $className::getRoutes();
@@ -182,10 +171,12 @@
 		 * Does not work with namespaced classes.
 		 *
 		 * @param string $dir Directory to look in - NO trailing slash!
+		 *
+		 * @throws \ReflectionException
 		 */
-		public function addHandlersFromDirectory($dir): SlimInit {
+		public function addHandlersFromDirectory(string $dir): SlimInit {
 			if (!is_dir($dir)) {
-				throw new \InvalidArgumentException('Could not find directory: ' . $dir);
+				throw new InvalidArgumentException('Could not find directory: ' . $dir);
 			}
 
 			$handlerFiles = glob($dir . '/*.php');
@@ -230,13 +221,17 @@
 				$handlerClassPath = $prefix . str_replace(DIRECTORY_SEPARATOR, '\\', $remainingNamespace . '\\' . $handlerClass);
 
 				if (!class_exists($handlerClassPath)) {
-					throw new \InvalidArgumentException('Could not find class "' . $handlerClassPath . '" in ' . $handlerFile);
+					throw new InvalidArgumentException('Could not find class "' . $handlerClassPath . '" in ' . $handlerFile);
 				}
 
-				$reflectionClass = new \ReflectionClass($handlerClassPath);
+				try {
+					$reflectionClass = new ReflectionClass($handlerClassPath);
 
-				if (!$reflectionClass->isAbstract()) {
-					$this->addHandler($handlerClassPath);
+					if (!$reflectionClass->isAbstract()) {
+						$this->addHandler($handlerClassPath);
+					}
+				} catch (ReflectionException $exception) {
+					throw new InvalidArgumentException($handlerClass . ' is not a valid class');
 				}
 			}
 
@@ -257,54 +252,70 @@
 		/**
 		 * Boot up the slim application, add handlers, exceptions and run it.
 		 *
-		 * @return Slim\App
+		 * @return App
 		 */
 		public function run(): App {
 			$scope = $this;
 
-			$this->app = new App($this->container);
-
 			// Map the routes from all loaded handlers
-			$this->app->group('', function() use($scope) {
-				$instances = [];
+			$instances = [];
 
-				foreach ($scope->handlers as $handlerClass => $handlerConfig) {
-					if (!isset($instances[$handlerClass])) {
-						$instances[$handlerClass] = new $handlerClass($scope->container);
+			foreach ($scope->handlers as $handlerClass => $handlerConfig) {
+				if (!isset($instances[$handlerClass])) {
+					$instances[$handlerClass] = new $handlerClass($scope->container);
+				}
+
+				/** @var $config Handlers\Route */
+				foreach ($handlerConfig as $route) {
+					if (!$route instanceof Route) {
+						throw new InvalidArgumentException('Route must be instance of Adepto\\Slim3Init\\Handlers\\Route');
 					}
 
-					/** @var $config Handlers\Route */
-					foreach ($handlerConfig as $route) {
-						if (!$route instanceof Route) {
-							throw new \InvalidArgumentException('Route must be instance of Adepto\\Slim3Init\\Handlers\\Route');
+					$slimRoute = $this->app->map([ $route->getHTTPMethod() ], $route->getURL(), function($request, $response, $args) use($handlerClass, $route, $instances) {
+						$method = $route->getClassMethod();
+						$argsObject = self::arrayToObject($args);
+
+						foreach ($route->getArguments() as $key => $value) {
+							$argsObject->$key = $value;
 						}
 
-						$slimRoute = $this->map([ $route->getHTTPMethod() ], $route->getURL(), function($request, $response, $args) use($handlerClass, $route, $instances) {
-							$method = $route->getClassMethod();
-							$argsObject = self::arrayToObject($args);
-
-							foreach ($route->getArguments() as $key => $value) {
-								$argsObject->$key = $value;
-							}
-
-							if (!is_callable([ $instances[$handlerClass], $method ])) {
-								throw new InvalidRouteException($handlerClass . ' defines a route "' . $route->getURL() . '"" for which the handler "' . $route->getClassMethod() . '" is not callable', 1);
-							}
-
-							return $instances[$handlerClass]->onRequest($request, $response, $argsObject, [ $instances[$handlerClass], $method ]);
-						});
-
-						if (!empty($route->getName())) {
-							$slimRoute->setName($route->getName());
+						if (!is_callable([ $instances[$handlerClass], $method ])) {
+							throw new InvalidRouteException($handlerClass . ' defines a route "' . $route->getURL() . '"" for which the handler "' . $route->getClassMethod() . '" is not callable', 1);
 						}
+
+						return $instances[$handlerClass]->onRequest($request, $response, $argsObject, [ $instances[$handlerClass], $method ]);
+					});
+
+					if (!empty($route->getName())) {
+						$slimRoute->setName($route->getName());
 					}
 				}
-			});
+			}
 
 			// Add all middleware callables
 			foreach ($this->middleware as $middleware) {
 				$this->app->add($middleware);
 			}
+
+			$scope = $this;
+
+			// Add error handlers
+			$errorMiddleware = $this->app->addErrorMiddleware(true, true, true);
+
+			// 404
+			$errorMiddleware->setErrorHandler(HttpNotFoundException::class, function(ServerRequestInterface $request) use ($scope) {
+				return $scope->handleNotFound(Request::fromSlimRequest($request));
+			});
+
+			// 405
+			$errorMiddleware->setErrorHandler(HttpMethodNotAllowedException::class, function(ServerRequestInterface $request, Throwable $exception) use ($scope) {
+				return $scope->handleMethodNotAllowed(Request::fromSlimRequest($request), $exception);
+			});
+
+			// 500 or anything else
+			$errorMiddleware->setDefaultErrorHandler(function(ServerRequestInterface $request, Throwable $exception, bool $displayErrorDetails, bool $logErrors, bool $logErrorDetails) use ($scope) {
+				return $scope->handleError(Request::fromSlimRequest($request), $exception, $displayErrorDetails);
+			});
 
 			$this->app->run();
 
@@ -325,8 +336,8 @@
 		 *
 		 * @return stdClass
 		 */
-		public static function arrayToObject(array $arr): \stdClass {
-			$obj = new \stdClass();
+		public static function arrayToObject(array $arr): stdClass {
+			$obj = new stdClass();
 
 			foreach ($arr as $key => $val) {
 				if (is_array($val)) {
@@ -343,10 +354,10 @@
 		 * HANDLERS *
 		 ************/
 
-		protected function handleError(ServerRequestInterface $req, ResponseInterface $res, \Throwable $t): ResponseInterface {
-			$headers = $req->getHeaders();
+		protected function handleError(Request $request, Throwable $t, bool $displayErrorDetails = false): Response {
 			$tClass = get_class($t);
 			$statusCode = $this->exceptions[$tClass] ?? 500;
+			$res = new Response();
 
 			$content = [
 				'status'		=>	'error',
@@ -360,13 +371,13 @@
 			/*
 				Internal errors get more info for developers but less errors for users.
 			 */
-			if ($statusCode == 500) {
+			if ($statusCode == 500 && $displayErrorDetails) {
 				$content['message'] = 'An internal error happened. >.<';
 
-				if (isset($this->container['debugHeader'])) {
+				if ($this->container->has('debugHeader')) {
 					$debugHeader = $this->container['debugHeader'];
 
-					if ($req->hasHeader($debugHeader['key']) && $req->getHeader($debugHeader['key'])[0] == $debugHeader['value']) {
+					if ($request->hasHeader($debugHeader['key']) && $request->getHeader($debugHeader['key'])[0] == $debugHeader['value']) {
 						$content['details'] = [
 							'exception'		=>	get_class($t),
 							'message'		=>	$t->getMessage(),
@@ -379,14 +390,21 @@
 			return $res->withJson($content, $statusCode);
 		}
 
-		protected function handleNotFound(ServerRequestInterface $req, ResponseInterface $res): ResponseInterface {
+		protected function handleNotFound(Request $request): Response {
+			$res = new Response();
+
 			return $res->withJson([
 				'status'		=>	'error',
 				'message'		=>	'Page not found.'
 			], 404);
 		}
 
-		protected function handleMethodNotAllowed(ServerRequestInterface $req, ResponseInterface $res, array $methods): ResponseInterface {
+		protected function handleMethodNotAllowed(Request $req, Throwable $t): Response {
+			$routeContext = RouteContext::fromRequest($req);
+			$routingResults = $routeContext->getRoutingResults();
+			$methods = $routingResults->getAllowedMethods();
+			$res = new Response();
+
 			$res = $res->withJson([
 				'status'			=>	'error',
 				'message'			=>	'Method not allowed',
