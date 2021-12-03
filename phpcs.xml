@@ -41,7 +41,7 @@
 	<rule ref="Generic.NamingConventions.ConstructorName" />
 
 	<!-- Require doc comments to be well-formatted -->
-	<rule ref="Generic.Commenting.DocComment"/>
+	<!--<rule ref="Generic.Commenting.DocComment"/>-->
 
 	<!-- Require spaces around operators -->
 	<rule ref="Squiz.WhiteSpace.OperatorSpacing" />

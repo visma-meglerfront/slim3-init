@@ -176,7 +176,7 @@
 		 *
 		 * @param string $dir Directory to look in - NO trailing slash!
 		 *
-		 * @throws \ReflectionException
+		 * @throws ReflectionException
 		 */
 		public function addHandlersFromDirectory(string $dir): SlimInit {
 			if (!is_dir($dir)) {
@@ -186,10 +186,11 @@
 			$handlerFiles = glob($dir . '/*.php');
 
 			foreach ($handlerFiles as $handlerFile) {
+				/** @noinspection PhpIncludeInspection */
 				require_once $handlerFile;
 
 				$handlerClass = str_replace('.php', '', basename($handlerFile));
-				$reflectionClass = new \ReflectionClass($handlerClass);
+				$reflectionClass = new ReflectionClass($handlerClass);
 
 				if (!$reflectionClass->isAbstract()) {
 					$this->addHandler($handlerClass);
@@ -219,6 +220,7 @@
 			$handlerFiles = glob($dirPath . '/*.php');
 
 			foreach ($handlerFiles as $handlerFile) {
+				/** @noinspection PhpIncludeInspection */
 				require_once $handlerFile;
 
 				$handlerClass = str_replace('.php', '', basename($handlerFile));
