@@ -8,13 +8,13 @@ Add this to `composer.json`:
 
 ```json
 "repositories": [
-{
-"type": "vcs",
-"url": "https://github.com/adeptoas/slim3-init"
-}
+	{
+		"type": "vcs",
+		"url": "https://github.com/adeptoas/slim3-init"
+	}
 ],
 "require": {
-"adeptoas/slim3-init": "^2.0.0"
+	"adeptoas/slim3-init": "^2.0.0"
 }
 ```
 
