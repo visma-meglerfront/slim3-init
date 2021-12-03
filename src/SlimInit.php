@@ -1,7 +1,11 @@
 <?php
 	namespace Adepto\Slim3Init;
 
-	use Adepto\Slim3Init\Handlers\Route;
+	use Adepto\Slim3Init\Handlers\{
+		Route
+	};
+
+	use Adepto\Slim3Init\Factories\SlimInitPsr17Factory;
 	use Adepto\Slim3Init\Exceptions\InvalidRouteException;
 
 	use Psr\Http\Message\ServerRequestInterface;

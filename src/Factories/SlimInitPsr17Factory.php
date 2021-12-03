@@ -1,5 +1,5 @@
 <?php
-	namespace Adepto\Slim3Init;
+	namespace Adepto\Slim3Init\Factories;
 
 	use Slim\Factory\Psr17\SlimPsr17Factory;
 
