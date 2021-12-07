@@ -313,6 +313,29 @@ class NotFoundHandler extends ExceptionHandler {
 $app->setException(SomethingNotFoundException::class, NotFoundHandler::class);
 ```
 
+You can also override already existing default handlers for 404, 405 and 500:
+
+```php
+use Adepto\Slim3Init\Exceptions\InternalErrorException;
+use Adepto\Slim3Init\Exceptions\MethodNotAllowedException;
+use Adepto\Slim3Init\Exceptions\NotFoundException;
+use Adepto\Slim3Init\SlimInit;
+/** @var $app SlimInit */
+
+// Customize 404
+$app->setException(NotFoundException::class, CustomHandler::class);
+// Customize 405
+$app->setException(MethodNotAllowedException::class, CustomHandler::class);
+// Customize default handler (500)
+$app->setException(InternalErrorException::class, CustomHandler::class);
+// Customize all at once
+$app->setException([
+	NotFoundException::class,
+	MethodNotAllowedException::class,
+	InternalErrorException::class
+], CustomHandler::class);
+```
+
 To use the default exception handler and just customize the HTTP status code, you can continue to assign a status code
 instead of a handler, just like in SlimInit 1.x:
 

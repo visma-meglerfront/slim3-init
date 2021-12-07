@@ -5,6 +5,7 @@
 
 	use Adepto\Slim3Init\Exceptions\{
 		AccessDeniedException,
+		InternalErrorException,
 		InvalidRequestException,
 		InvalidRouteException,
 		MethodNotAllowedException,
@@ -170,7 +171,7 @@
 		public function getHandlerForException(Throwable $t): ExceptionHandler {
 			$class = get_class($t);
 
-			if (is_string($this->exceptions[$class]) && class_exists($this->exceptions[$class])) {
+			if (is_string($this->exceptions[$class] ?? null) && class_exists($this->exceptions[$class])) {
 				$handlerClass = $this->exceptions[$class];
 				$parentClasses = class_parents($handlerClass);
 
@@ -409,8 +410,16 @@
 
 			// 500 or anything else
 			$errorHandler = function(ServerRequestInterface $request, Throwable $exception, bool $displayErrorDetails, bool $logErrors) use ($scope) {
-				$handler = $scope->getHandlerForException($exception)->setLogException($logErrors);
 				$request = Request::fromSlimRequest($request);
+				$handler = $scope->getHandlerForException($exception);
+
+				// If default handler, try to find a general customization
+				if (get_class($handler) == ExceptionHandler::class) {
+					$handler = $scope->getHandlerForException(new InternalErrorException($request, $exception->getMessage(), $exception));
+				}
+
+				$request = Request::fromSlimRequest($request);
+				$handler->setLogException($logErrors);
 
 				if ($scope->isDebug($request)) {
 					$displayErrorDetails = true;

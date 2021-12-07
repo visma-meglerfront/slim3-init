@@ -2,6 +2,7 @@
 	namespace Adepto\Slim3Init\Exceptions;
 
 	use Adepto\Slim3Init\Request;
+	use Throwable;
 
 	/**
 	 * InternalErrorException
@@ -14,8 +15,8 @@
 	class InternalErrorException extends \Exception {
 		protected $request;
 
-		public function __construct(Request $request, string $message) {
-			parent::__construct($message, 500);
+		public function __construct(Request $request, string $message, ?Throwable $previous = null) {
+			parent::__construct($message, 500, $previous);
 			$this->request = $request;
 		}
 
