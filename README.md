@@ -47,7 +47,7 @@ Make sure to merge your `require`-blocks!
 
 - #### Map an exception to an exception handler
 	Customize the handling of an exception entirely. `$exceptionHandlerClass` must be the fully qualified name of a class
-	that extends `Adepto\SlimInit\Handlers\ExceptionHandler`.
+	that extends `Adepto\Slim3Init\Handlers\ExceptionHandler`.
 
 	```php
 	setException(string $exception, string $exceptionHandlerClass): SlimInit
