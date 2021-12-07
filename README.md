@@ -24,108 +24,139 @@ Make sure to merge your `require`-blocks!
 
 ### SlimInit
 
-```php
-__construct
-```
+- #### Create a SlimInit instance
 
-Empty.
+	```php
+	$app = new SlimInit();
+	```
 
-```php
-setDebugHeader(string $header, string $expectedValue = ''): SlimInit
-```
+- #### Set debug header
+	If this header is present in the request, it will enable additional information to be shown when using the default exception handler.
+	Set null to disable this feature.
 
-Set a header which will trigger debug mode to show more information on errors. Leave empty to disable this feature.
+	```php
+	setDebugHeader(?string $header, string $expectedValue = ''): SlimInit
+	```
 
-```php
-setException(string $exception, int $statusCode): SlimInit
-```
+- #### Map an exception to an HTTP status code
+	Set the HTTP status code for an exception when using the default exception handler.
 
-Map an exception to a HTTP status code.
+	```php
+	setException(string $exception, int $statusCode): SlimInit
+	```
 
-```php
-setException(array $exception, int $statusCode): SlimInit
-```
+- #### Map an exception to an exception handler
+	Customize the handling of an exception entirely. `$exceptionHandlerClass` must be the fully qualified name of a class
+	that extends `Adepto\SlimInit\Handlers\ExceptionHandler`.
 
-Map multiple exceptions to an HTTP status code.
+	```php
+	setException(string $exception, string $exceptionHandlerClass): SlimInit
+	```
 
-```php
-addToContainer(string $key, mixed $value): SlimInit
-```
+- #### Map multiple exceptions to an exception handler or status code
 
-Add something to the Slim container.
+	```php
+	setException(array $exceptions, int|string $statusCodeOrHandlerClass): SlimInit
+	```
 
-```php
-addHandler(string $className): SlimInit
-```
+- #### Add something to the container
 
-Add a specific handler. Must be the name of a class that extends `Adepto\Slim3Init\Handlers\Handler`.
+	```php
+	addToContainer(string $key, mixed $value): SlimInit
+	```
 
-```php
-addHandlersFromDirectory(string $dir): SlimInit
-```
+- #### Add a single handler
+	`$className` must be the name of a class that extends `Adepto\Slim3Init\Handlers\Handler`.
 
-Add all handlers from a specific directory. Non-recursive and the filenames must be the class names followed by `.php`.
+	```php
+	addHandler(string $className): SlimInit
+	```
 
-```php
-addMiddleware(callable $middleware): SlimInit
-```
+- #### Add multiple handlers from a directory
+	Add all handlers from a specific directory. Non-recursive and the filenames must be the class names followed by `.php`.
 
-Add some Slim-compatible middleware. Refer to Slim's documentation for more information about middleware.
+	```php
+	addHandlersFromDirectory(string $dir): SlimInit
+	```
 
-```php
-run(): Slim\App
-```
+- #### Add Slim 4-compatible middleware
+	Refer to Slim's documentation for more information about middleware.
 
-Boot up the application and listen to incoming requests. Automatically appoints all handlers and maps everything.
+	```php
+	addMiddleware(callable $middleware): SlimInit
+	```
+
+- #### Run!
+	Boot up the application and listen to incoming requests. Automatically appoints all handlers and maps everything.
+
+	```php
+	run(): Slim\App
+	```
+
+---
 
 ### HandlerCaller
 
 All mocking methods return the text output that would've been sent to the browser. This is a JSON string most of the
 times.
 
-```php
-__construct(string $baseURL, string $handlerClass)
-```
+- #### Create a HandlerCaller
 
-Create a caller for `$handlerClass`. You can leave $baseURL empty but for consistency and compatibility you should set
-this to the base URL this handler would've listened to (without the route URL).
+	Create a caller for `$handlerClass`. You can leave $baseURL empty but for consistency and compatibility you should set
+	this to the base URL this handler would've listened to (without the route URL).
 
-```php
-get(string $url, array $headers = []): string
-```
+	```php
+	$caller = new HandlerCaller(string $baseURL, string $handlerClass);
+	```
 
-Mock a GET request to `$url` with `$headers`.
+- #### GET
 
-```php
-post(string $url, array $headers, mixed $body): string
-```
+	Mock a GET request to `$url` with `$headers`.
 
-Mock a POST request to `$url` with `$headers` and send `$body` with it. If `$body` is an array, it will be converted to
-Form or JSON, based on `Content-Type` in `$headers` (default is Form).
+	```php
+	get(string $url, array $headers = []): string
+	```
 
-```php
-put(string $url, array $headers, mixed $body, array $files = []): string
-```
+- #### POST
 
-Mock a PUT request to `$url` with `$headers` and send `$body` and `$files` with it. If `$body` is an array, it will be
-converted to Form or JSON, based on `Content-Type` in `$headers` (default is Form).
+	Mock a POST request to `$url` with `$headers` and send `$body` with it. If `$body` is an array, it will be converted to
+	Form or JSON, based on `Content-Type` in `$headers` (default is Form).
 
-```php
-patch(string $url, array $headers, mixed $body, $files = []): string
-```
+	```php
+	post(string $url, array $headers, mixed $body): string
+	```
 
-Same as POST, just with PATCH as HTTP method and `$files`.
+- #### PUT
 
-```php
-delete(string $url, array $headers, mixed $body): string
-```
+	Mock a PUT request to `$url` with `$headers` and send `$body` and `$files` with it. If `$body` is an array, it will be
+	converted to Form or JSON, based on `Content-Type` in `$headers` (default is Form).
 
-Same as POST, just with DELETE as HTTP method.
+	```php
+	put(string $url, array $headers, mixed $body, array $files = []): string
+	```
+
+- #### PATCH
+
+	Same as POST, just with PATCH as HTTP method and `$files`.
+
+	```php
+	patch(string $url, array $headers, mixed $body, $files = []): string
+	```
+
+- #### DELETE
+
+	Same as POST, just with DELETE as HTTP method.
+
+	```php
+	delete(string $url, array $headers, mixed $body): string
+	```
+
+---
 
 ### Handler
 
 To have your API do something, you need to create handlers which extend `Adepto\Slim3Init\Handlers\Handler`. Each
-handler must override `getRoutes(): array` to return an array of routes. Each handler is given a container in the
+handler must override `getRoutes(): array` to return an array of routes. Each handler receives a container in the
 constructor by default.
 
 The actual methods of your handler must have the following signature:
@@ -133,6 +164,8 @@ The actual methods of your handler must have the following signature:
 ```php
 public function someName(Adepto\Slim3Init\Request $request, Adepto\Slim3Init\Response $response, \stdClass $args): Adepto\Slim3Init\Response
 ```
+
+---
 
 ### PrivilegedHandler
 
@@ -148,75 +181,96 @@ forcePermission(string $action, array $data = []): bool
 Force a permission. This is basically just an alias for `actionAllowed` (which you have to override) but throws
 a `Adepto\Slim3Init\Exceptions\AccessDeniedException` if the given permission is not allowed.
 
+---
+
 ### Route
 
 Defines a route which has to be returned inside an array returned by your handler's `getRoutes()` function.
 
 ```php
-__construct(string $httpMethod, string $url, string $classMethod)
+new Route(string $httpMethod, string $url, string $classMethod, array $arguments = [], string $name = '')
 ```
 
 - `$httpMethod`: The HTTP verb used for this route, i.e. GET, POST, PATCH, ...
 - `$url`: Slim-compatible URL pattern, i.e. `/client/{client:[a-zA-Z0-9]+}`
 - `$classMethod`: The name of the method to be called in the handler.
+- `$arguments`: Additional arguments to add to `$args` of the method.
+- `$name`: Name for the route so that it can be retrieved by any handlers.
+
+---
 
 ### Interface: Client
 
-```php
-getUsername(): string
-```
+-
+	```php
+	getUsername(): string
+	```
 
-Should return the username of the currently logged in user (if `BasicAuth` was used).
+	Should return the username of the currently logged in user (if `BasicAuth` was used).
 
-```php
-getPermissions(): array
-```
+-
+	```php
+	getPermissions(): array
+	```
 
-Should return an array full of `Adepto\Slim3Init\Client\Permission` objects for the currently logged in user (
-if `BasicAuth` was used).
+	Should return an array full of `Adepto\Slim3Init\Client\Permission` objects for the currently logged in user (
+	if `BasicAuth` was used).
 
-```php
-hasPermission(string $name, array $data = []): bool;
-```
+-
+	```php
+	hasPermission(string $name, array $data = []): bool;
+	```
 
-Should return true when the currently logged in user has a certain permission. You can use `$data` to combine the
-permission with more info, i.e. when a resource's information access should be constrained to certain IDs.
+	Should return true when the currently logged in user has a certain permission. You can use `$data` to combine the
+	permission with more info, i.e. when a resource's information access should be constrained to certain IDs.
+
+---
 
 ### Interface: Permission
 
-```php
-getName(): string
-```
+-
+	```php
+	getName(): string
+	```
 
-Should return the name of the permission. You are free to define how a name looks like. It is recommended to use
-reverse-domain style, i.e. `adepto.api.addKnowledge`.
+	Should return the name of the permission. You are free to define how a name looks like. It is recommended to use
+	reverse-domain style, i.e. `adepto.api.addKnowledge`.
 
-```php
-getData(): array
-```
+-
+	```php
+	getData(): array
+	```
 
-Should return information specific to that permission, i.e. IDs of a resource that can be accessed. Can be an empty
-array, if there is no information.
+	Should return information specific to that permission, i.e. IDs of a resource that can be accessed. Can be an empty
+	array, if there is no information.
 
-```php
-isAllowed(): bool
-```
+-
+	```php
+	isAllowed(): bool
+	```
 
-Should return true, if the permission is allowed.
+	Should return true, if the permission is allowed.
+
+---
 
 ### Abstract: BasicAuth (Middleware)
 
-```php
-authorize(array $credentials): array
-```
+-
+	```php
+	authorize(array $credentials): array
+	```
 
-Should return an array with more information to be added to the container, i.e. an authorized client to be used with a
-PrivilegedHandler. If you're going to return a client, make sure to set the key to `PrivilegedHandler::CONTAINER_CLIENT`
-. Should throw an `Adepto\Slim3Init\Exceptions\UnauthorizedException` if the user could not be authorized.
+	Should return an array with more information to be added to the container, i.e. an authorized client to be used with a
+	PrivilegedHandler. If you're going to return a client, make sure to set the key to `PrivilegedHandler::CONTAINER_CLIENT`
+	. Should throw an `Adepto\Slim3Init\Exceptions\UnauthorizedException` if the user could not be authorized.
+
+---
 
 ## Examples
 
 Examples can be found in `examples/` of this repository.
+
+---
 
 # Upgrade from SlimInit 1.0 (using Slim3)
 
