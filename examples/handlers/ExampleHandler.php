@@ -60,9 +60,26 @@
 		 * @param stdClass $args      Arguments
 		 *
 		 * @return Response
+		 * @throws InvalidRequestException
 		 */
 		public function getException(Request $request, Response $response, stdClass $args): Response {
-			throw new InvalidRequestException('Halp!', 20);
+			$first = new InvalidRequestException('A exception that happened first');
+			$second = new InvalidRequestException('Halp! Invalid request for example', 20, $first);
+
+			throw $second;
+		}
+
+		/**
+		 * getException
+		 *
+		 * @param          $request   Request
+		 * @param Response $response  Response
+		 * @param stdClass $args      Arguments
+		 *
+		 * @return Response
+		 */
+		public function patchMethodNotAllowed(Request $request, Response $response, stdClass $args): Response {
+			return $response->withJson(['message' => 'Call this method as GET or POST.']);
 		}
 
 		/**
@@ -86,6 +103,7 @@
 		 * @param stdClass $args     Arguments
 		 *
 		 * @return Response
+		 * @throws InvalidRequestException
 		 */
 		public function getCaller(Request $request, Response $response, stdClass $args): Response {
 			$caller = new HandlerCaller('/', ExampleHandler::class);
@@ -99,6 +117,7 @@
 				new Route('GET', '/named-route', 'getNamedRoute', [], 'get-named-route'),
 				new Route('POST', '/echo', 'postEcho', [], 'post-echo'),
 				new Route('GET', '/exception', 'getException'),
+				new Route('PATCH', '/method-not-allowed', 'patchMethodNotAllowed'),
 				new Route('GET', '/error', 'getError'),
 				new Route('GET', '/caller', 'getCaller')
 			];
