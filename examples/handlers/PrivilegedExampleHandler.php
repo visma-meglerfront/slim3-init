@@ -1,11 +1,17 @@
 <?php
+
+	use Adepto\Slim3Init\Exceptions\AccessDeniedException;
+
+	use Adepto\Slim3Init\Handlers\{
+		PrivilegedHandler,
+		Route
+	};
+
 	use Adepto\Slim3Init\{
-		Handlers\PrivilegedHandler,
-		Handlers\Route,
 		Request,
 		Response
 	};
-
+	
 	class PrivilegedExampleHandler extends PrivilegedHandler {
 
 		/**
@@ -38,6 +44,7 @@
 		 * @param stdClass $args     Arguments
 		 *
 		 * @return Response
+		 * @throws AccessDeniedException
 		 */
 		public function getData(Request $request, Response $response, \stdClass $args): Response {
 			$this->forcePermission('example.perm', array_diff((array) $args, [2]));
@@ -49,9 +56,12 @@
 			return $this->getClient()->hasPermission($action, $data);
 		}
 
+		/**
+		 * @throws AccessDeniedException
+		 */
 		public function onRequest(Request $request, Response $response, stdClass $args, callable $next): Response {
 			if (mt_rand(1, 3) == 2) {
-				throw new Adepto\Slim3Init\Exceptions\AccessDeniedException('Nope');
+				throw new AccessDeniedException('Nope');
 			}
 
 			return $next($request, $response, $args);

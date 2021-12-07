@@ -15,7 +15,7 @@
 
 	// Add handlers, middleware and set a debug header
 	$slim->addHandlersFromDirectory(__DIR__ . '/handlers')
-		 ->setBasePath('/examples')
+	     ->setBasePath('/examples')
 	     ->addMiddleware(new APIBasicAuth($slim->getContainer(), 'API Example'))
 	     ->setDebugHeader('Debug', '1')
 	     ->run();
