@@ -43,6 +43,11 @@
 				}
 
 				$response = $this->exceptionHandler->handle($this->request, new InternalErrorException($this->request, $message), $this->displayErrorDetails);
+
+				if (ob_get_length()) {
+					ob_clean();
+				}
+
 				(new ResponseEmitter())->emit($response);
 			}
 		}
