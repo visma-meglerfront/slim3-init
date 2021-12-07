@@ -57,6 +57,8 @@
 		protected $handlers;
 		/** @var array User-added middleware */
 		protected $middleware;
+		/** @var callable[] */
+		protected $exceptionCallbacks;
 		/** @var App Actual Slim instance */
 		protected $app;
 		/** @var ExceptionHandler Cached default exception handler */
@@ -342,6 +344,47 @@
 			return $this;
 		}
 
+		/**
+		 * Set all slim-compatible middlewares.
+		 *
+		 * @param array $middleware
+		 *
+		 * @return $this
+		 */
+		public function setMiddleware(array $middleware): SlimInit {
+			$this->middleware = $middleware;
+
+			return $this;
+		}
+
+		/**
+		 * Add a callback to run when an unmapped exception occurs.
+		 * Receives the {@see Request} and the Throwable as an argument.
+		 *
+		 * @param callable $callback
+		 *
+		 * @return $this
+		 */
+		public function addExceptionCallback(callable $callback): SlimInit {
+			$this->exceptionCallbacks[] = $callback;
+
+			return $this;
+		}
+
+		/**
+		 * Set all callbacks to run when an unmapped exception occurs.
+		 * Receives the {@see Request} and the Throwable as an argument.
+		 *
+		 * @param array $callbacks
+		 *
+		 * @return $this
+		 */
+		public function setExceptionCallbacks(array $callbacks): SlimInit {
+			$this->exceptionCallbacks = $callbacks;
+
+			return $this;
+		}
+
 		protected function registerShutdownHandler() {
 			$serverRequestCreator = ServerRequestCreatorFactory::create();
 			$request = $serverRequestCreator->createServerRequestFromGlobals();
@@ -418,6 +461,13 @@
 			// 500 or anything else
 			$errorHandler = function(ServerRequestInterface $request, Throwable $exception, bool $displayErrorDetails, bool $logErrors) use ($scope) {
 				$request = Request::fromSlimRequest($request);
+
+				// Run exception callbacks first
+				foreach ($scope->exceptionCallbacks as $callback) {
+					$callback($request, $exception);
+				}
+
+				// Then find and run the exception handler
 				$handler = $scope->getHandlerForException($exception);
 
 				// If default handler, try to find a general customization
@@ -425,13 +475,14 @@
 					$handler = $scope->getHandlerForException(new InternalErrorException($request, $exception->getMessage(), $exception));
 				}
 
-				$request = Request::fromSlimRequest($request);
 				$handler->setLogException($logErrors);
 
+				// Enable error details if debug header is set
 				if ($scope->isDebug($request)) {
 					$displayErrorDetails = true;
 				}
 
+				// Go!
 				return $handler->handle($request, $exception, $displayErrorDetails);
 			};
 

@@ -59,6 +59,30 @@ Make sure to merge your `require`-blocks!
 	setException(array $exceptions, int|string $statusCodeOrHandlerClass): SlimInit
 	```
 
+- #### Example: Add error collection services like Raygun, Sentry, …
+
+	To send an exception to an error collection service, add an exception callback:
+
+	```php
+	/** @var $app \Adepto\Slim3Init\SlimInit */
+	$app->addExceptionCallback(function(\Adepto\Slim3Init\Request $request, Throwable $t) {
+		// Send $t to the service
+	});
+	```
+
+	Or as a class:
+
+	```php
+	class ExceptionCallback {
+		public function __invoke(\Adepto\Slim3Init\Request $request, Throwable $t) {
+			// Send $t to the service
+		}
+	}
+
+	/** @var $app \Adepto\Slim3Init\SlimInit */
+	$app->addExceptionCallback(new ExceptionCallback());
+ 	```
+
 - #### Add something to the container
 
 	```php
