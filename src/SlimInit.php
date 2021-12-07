@@ -78,6 +78,7 @@
 			$this->exceptions = [];
 			$this->handlers = [];
 			$this->middleware = [];
+			$this->exceptionCallbacks = [];
 			$this->container = new Container();
 
 			AppFactory::setContainer($this->container);
