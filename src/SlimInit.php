@@ -481,7 +481,7 @@
 				$response = $handler->handle($request, $exception, $displayErrorDetails);
 
 				if ($response->getStatusCode() >= 500) {
-					// Run exception callbacks first
+					// Run exception callbacks
 					foreach ($scope->exceptionCallbacks as $callback) {
 						$callback($request, $exception);
 					}
