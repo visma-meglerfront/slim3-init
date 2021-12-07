@@ -462,12 +462,7 @@
 			$errorHandler = function(ServerRequestInterface $request, Throwable $exception, bool $displayErrorDetails, bool $logErrors) use ($scope) {
 				$request = Request::fromSlimRequest($request);
 
-				// Run exception callbacks first
-				foreach ($scope->exceptionCallbacks as $callback) {
-					$callback($request, $exception);
-				}
-
-				// Then find and run the exception handler
+				// Find and run the exception handler
 				$handler = $scope->getHandlerForException($exception);
 
 				// If default handler, try to find a general customization
@@ -483,7 +478,16 @@
 				}
 
 				// Go!
-				return $handler->handle($request, $exception, $displayErrorDetails);
+				$response = $handler->handle($request, $exception, $displayErrorDetails);
+
+				if ($response->getStatusCode() >= 500) {
+					// Run exception callbacks first
+					foreach ($scope->exceptionCallbacks as $callback) {
+						$callback($request, $exception);
+					}
+				}
+
+				return $response;
 			};
 
 			$errorMiddleware->setDefaultErrorHandler($errorHandler);
