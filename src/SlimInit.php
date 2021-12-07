@@ -11,7 +11,8 @@
 		MethodNotAllowedException,
 		NotFoundException,
 		UnauthorizedException,
-		InvalidExceptionHandlerException};
+		InvalidExceptionHandlerException
+	};
 
 	use Adepto\Slim3Init\Handlers\{
 		ExceptionHandler,
@@ -48,11 +49,17 @@
 	 * @package as.adepto.slim-init
 	 */
 	class SlimInit {
+		/** @var Container Container for passing around to everything */
 		protected $container;
+		/** @var array Exception mapping to status codes and handlers */
 		protected $exceptions;
+		/** @var array Route handlers */
 		protected $handlers;
+		/** @var array User-added middleware */
 		protected $middleware;
+		/** @var App Actual Slim instance */
 		protected $app;
+		/** @var ExceptionHandler Cached default exception handler */
 		private $defaultExceptionHandler;
 
 		/**
