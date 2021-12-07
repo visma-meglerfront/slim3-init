@@ -287,6 +287,41 @@ class YourMiddleware {
 
 **You no longer have access to the response before other middleware and handlers have run.**
 
+### 3. `SlimInit` no longer contains `handleError`, `handleNotFound` and `handleMethodNotAllowed`
+
+Instead of overriding these methods in your own application to customize the handling of 500, 404 and 405 respectively,
+you now implement your own `ExceptionHandler` and assign it to exceptions. Example:
+
+```php
+<?php
+use Adepto\Slim3Init\SlimInit;
+use Adepto\Slim3Init\Request;
+use Adepto\Slim3Init\Handlers\ExceptionHandler;
+use Psr\Http\Message\ResponseInterface;
+
+class NotFoundHandler extends ExceptionHandler {
+
+	public function handle(Request $request, Throwable $t, bool $displayDetails): ResponseInterface {
+		return $this->createResponse(404)
+		            ->withJson(['error' => 'not_found']);
+	}
+}
+
+// … your $app definition
+
+/** @var $app SlimInit */
+$app->setException(SomethingNotFoundException::class, NotFoundHandler::class);
+```
+
+To use the default exception handler and just customize the HTTP status code, you can continue to assign a status code
+instead of a handler, just like in SlimInit 1.x:
+
+```php
+use Adepto\Slim3Init\SlimInit;
+// … your $app definition
+/** @var $app SlimInit */
+$app->setException(SomethingNotFoundException::class, 404);
+```
 
 ## Minor Changes
 

@@ -1,12 +1,24 @@
 <?php
 	namespace Adepto\Slim3Init;
 
-	use Adepto\Slim3Init\Handlers\{
-		Route
-	};
-
 	use Adepto\Slim3Init\Factories\SlimInitPsr17Factory;
-	use Adepto\Slim3Init\Exceptions\InvalidRouteException;
+
+	use Adepto\Slim3Init\Exceptions\{
+		AccessDeniedException,
+		InvalidRequestException,
+		InvalidRouteException,
+		MethodNotAllowedException,
+		NotFoundException,
+		UnauthorizedException,
+		InvalidExceptionHandlerException};
+
+	use Adepto\Slim3Init\Handlers\{
+		ExceptionHandler,
+		MethodNotAllowedExceptionHandler,
+		NotFoundExceptionHandler,
+		Route,
+		ShutdownHandler
+	};
 
 	use Psr\Http\Message\ServerRequestInterface;
 	use Slim\App;
@@ -18,7 +30,7 @@
 
 	use Slim\Factory\AppFactory;
 	use Slim\Factory\Psr17\Psr17FactoryProvider;
-	use Slim\Routing\RouteContext;
+	use Slim\Factory\ServerRequestCreatorFactory;
 
 	use stdClass;
 	use Throwable;
@@ -40,6 +52,7 @@
 		protected $handlers;
 		protected $middleware;
 		protected $app;
+		private $defaultExceptionHandler;
 
 		/**
 		 * Create a SlimInit container.
@@ -48,6 +61,8 @@
 		 *     - InvalidRequestException: 400
 		 *     - UnauthorizedException: 401
 		 *     - AccessDeniedException: 403
+		 *     - NotFoundException: 404
+		 *     - MethodNotAllowedException: 405
 		 */
 		public function __construct() {
 			$this->exceptions = [];
@@ -59,22 +74,26 @@
 			Psr17FactoryProvider::addFactory(SlimInitPsr17Factory::class);
 
 			$this->app = AppFactory::create();
+
+			// Register PHP errors
+			$this->registerShutdownHandler();
+
+			// Add Slim-internal middleware
 			$this->app->addBodyParsingMiddleware();
 			$this->app->addRoutingMiddleware();
 
+			// Set router for handlers to access
 			$this->container->set('router', $this->app->getRouteCollector()->getRouteParser());
 
-			/*
-				Add some default exceptions
-			 */
-			$this->setException('Adepto\\Slim3Init\\Exceptions\\InvalidRequestException', 400);
-			$this->setException('Adepto\\Slim3Init\\Exceptions\\UnauthorizedException', 401);
-			$this->setException('Adepto\\Slim3Init\\Exceptions\\AccessDeniedException', 403);
+			// Add some default exceptions
+			$this->setException(InvalidRequestException::class, 400);
+			$this->setException(UnauthorizedException::class, 401);
+			$this->setException(AccessDeniedException::class, 403);
+			$this->setException(NotFoundException::class, NotFoundExceptionHandler::class);
+			$this->setException(MethodNotAllowedException::class, MethodNotAllowedExceptionHandler::class);
 
-			/*
-				Set an empty debug header (disabling this feature essentially)
-			 */
-			$this->setDebugHeader('');
+			// Set an empty debug header (disabling this feature)
+			$this->setDebugHeader(null);
 		}
 
 		/**
@@ -105,10 +124,10 @@
 		 * it will circumvent any "human friendly" error page and output exception's
 		 * details in JSON, so be careful with this.
 		 *
-		 * @param string $header        Header's Name
-		 * @param string $expectedValue Header's Value to trigger debugging
+		 * @param ?string   $header        Header's Name
+		 * @param string    $expectedValue Header's Value to trigger debugging
 		 */
-		public function setDebugHeader(string $header, string $expectedValue = ''): SlimInit {
+		public function setDebugHeader(?string $header, string $expectedValue = ''): SlimInit {
 			if (empty($header)) {
 				$this->container->set('debugHeader', null);
 			} else {
@@ -125,18 +144,75 @@
 		 * Set the status code for an exception.
 		 *
 		 * @param string|array                  $ex                     Exception Class(es)
-		 * @param int                           $statusCode             HTTP status code
+		 * @param int|string                    $statusCodeOrHandler    HTTP status code
 		 */
-		public function setException($ex, int $statusCode): SlimInit {
+		public function setException($ex, $statusCodeOrHandler): SlimInit {
 			if (is_array($ex)) {
 				foreach ($ex as $e) {
-					$this->setException($e, $statusCode);
+					$this->setException($e, $statusCodeOrHandler);
 				}
 			} else {
-				$this->exceptions[$ex] = $statusCode;
+				$this->exceptions[$ex] = $statusCodeOrHandler;
 			}
 
 			return $this;
+		}
+
+		/**
+		 * Get the handler for a specific exception
+		 *
+		 * @param Throwable $t  Exception to get handler for
+		 *
+		 * @return ExceptionHandler Exception handler instance
+		 *
+		 * @throws InvalidExceptionHandlerException If the requested handler does not extend {@link ExceptionHandler}
+		 */
+		public function getHandlerForException(Throwable $t): ExceptionHandler {
+			$class = get_class($t);
+
+			if (is_string($this->exceptions[$class]) && class_exists($this->exceptions[$class])) {
+				$handlerClass = $this->exceptions[$class];
+				$parentClasses = class_parents($handlerClass);
+
+				if ($handlerClass != ExceptionHandler::class && !in_array(ExceptionHandler::class, $parentClasses)) {
+					throw new InvalidExceptionHandlerException('Exception handler "' . $handlerClass . '" must extend "' . ExceptionHandler::class . '"');
+				}
+
+				return new $handlerClass($this->container, $this, null, false);
+			}
+
+			return $this->getDefaultExceptionHandler();
+		}
+
+		/**
+		 * Get the status code for an exception
+		 * Returns 500 for unknown or custom handlers
+		 *
+		 * @param Throwable $t
+		 *
+		 * @return int
+		 */
+		public function getStatusCodeForException(Throwable $t): int {
+			$class = get_class($t);
+
+			if (is_numeric($this->exceptions[$class] ?? null)) {
+				return $this->exceptions[$class];
+			}
+
+			return 500;
+		}
+
+		/**
+		 * Get the default exception handler
+		 *
+		 * @return ExceptionHandler
+		 */
+		public function getDefaultExceptionHandler(): ExceptionHandler {
+			if ($this->defaultExceptionHandler === null) {
+				$this->defaultExceptionHandler = new ExceptionHandler($this->container, $this, null, true);
+			}
+
+			return $this->defaultExceptionHandler;
 		}
 
 		/**
@@ -175,8 +251,6 @@
 		 * Does not work with namespaced classes.
 		 *
 		 * @param string $dir Directory to look in - NO trailing slash!
-		 *
-		 * @throws ReflectionException
 		 */
 		public function addHandlersFromDirectory(string $dir): SlimInit {
 			if (!is_dir($dir)) {
@@ -190,10 +264,15 @@
 				require_once $handlerFile;
 
 				$handlerClass = str_replace('.php', '', basename($handlerFile));
-				$reflectionClass = new ReflectionClass($handlerClass);
 
-				if (!$reflectionClass->isAbstract()) {
-					$this->addHandler($handlerClass);
+				try {
+					$reflectionClass = new ReflectionClass($handlerClass);
+
+					if (!$reflectionClass->isAbstract()) {
+						$this->addHandler($handlerClass);
+					}
+				} catch (ReflectionException $e) {
+					throw new InvalidArgumentException('Handler class "' . $handlerClass . '" could not be found in ' . $handlerFile, 500, $e);
 				}
 			}
 
@@ -255,6 +334,14 @@
 			return $this;
 		}
 
+		protected function registerShutdownHandler() {
+			$serverRequestCreator = ServerRequestCreatorFactory::create();
+			$request = $serverRequestCreator->createServerRequestFromGlobals();
+			$shutdownHandler = new ShutdownHandler(Request::fromSlimRequest($request), $this->getDefaultExceptionHandler(), true, true, true);
+
+			register_shutdown_function($shutdownHandler);
+		}
+
 		/**
 		 * Boot up the slim application, add handlers, exceptions and run it.
 		 *
@@ -309,19 +396,30 @@
 			$errorMiddleware = $this->app->addErrorMiddleware(true, true, true);
 
 			// 404
-			$errorMiddleware->setErrorHandler(HttpNotFoundException::class, function(ServerRequestInterface $request) use ($scope) {
-				return $scope->handleNotFound(Request::fromSlimRequest($request));
+			$errorMiddleware->setErrorHandler(HttpNotFoundException::class, function(ServerRequestInterface $request, Throwable $exception) use ($scope) {
+				$handler = $this->getHandlerForException(new NotFoundException($exception->getMessage(), $exception->getCode(), $exception));
+				return $handler->handle(Request::fromSlimRequest($request), $exception, false);
 			});
 
 			// 405
 			$errorMiddleware->setErrorHandler(HttpMethodNotAllowedException::class, function(ServerRequestInterface $request, Throwable $exception) use ($scope) {
-				return $scope->handleMethodNotAllowed(Request::fromSlimRequest($request), $exception);
+				$handler = $scope->getHandlerForException(new MethodNotAllowedException($exception->getMessage(), $exception->getCode(), $exception));
+				return $handler->handle(Request::fromSlimRequest($request), $exception, false);
 			});
 
 			// 500 or anything else
-			$errorMiddleware->setDefaultErrorHandler(function(ServerRequestInterface $request, Throwable $exception, bool $displayErrorDetails, bool $logErrors, bool $logErrorDetails) use ($scope) {
-				return $scope->handleError(Request::fromSlimRequest($request), $exception, $displayErrorDetails);
-			});
+			$errorHandler = function(ServerRequestInterface $request, Throwable $exception, bool $displayErrorDetails, bool $logErrors) use ($scope) {
+				$handler = $scope->getHandlerForException($exception)->setLogException($logErrors);
+				$request = Request::fromSlimRequest($request);
+
+				if ($scope->isDebug($request)) {
+					$displayErrorDetails = true;
+				}
+
+				return $handler->handle($request, $exception, $displayErrorDetails);
+			};
+
+			$errorMiddleware->setDefaultErrorHandler($errorHandler);
 
 			$this->app->run();
 
@@ -331,6 +429,18 @@
 		/***********
 		 * HELPERS *
 		 ***********/
+
+		protected function isDebug(Request $request): bool {
+			if ($this->container->has('debugHeader')) {
+				$debugHeader = $this->container['debugHeader'];
+
+				if ($debugHeader && $request->hasHeader($debugHeader['key']) && $request->getHeader($debugHeader['key'])[0] == $debugHeader['value']) {
+					return true;
+				}
+			}
+
+			return false;
+		}
 
 		/**
 		 * Convert an array to an object. This deep-copies everything
@@ -354,71 +464,5 @@
 			}
 
 			return $obj;
-		}
-
-		/************
-		 * HANDLERS *
-		 ************/
-
-		protected function handleError(Request $request, Throwable $t, bool $displayErrorDetails = false): Response {
-			$tClass = get_class($t);
-			$statusCode = $this->exceptions[$tClass] ?? 500;
-			$res = new Response();
-
-			$content = [
-				'status'		=>	'error',
-				'message'		=>	$t->getMessage()
-			];
-
-			if ($t->getCode()) {
-				$content['code'] = $t->getCode();
-			}
-
-			/*
-				Internal errors get more info for developers but less errors for users.
-			 */
-			if ($statusCode == 500 && $displayErrorDetails) {
-				$content['message'] = 'An internal error happened. >.<';
-
-				if ($this->container->has('debugHeader')) {
-					$debugHeader = $this->container['debugHeader'];
-
-					if ($request->hasHeader($debugHeader['key']) && $request->getHeader($debugHeader['key'])[0] == $debugHeader['value']) {
-						$content['details'] = [
-							'exception'		=>	get_class($t),
-							'message'		=>	$t->getMessage(),
-							'stacktrace'	=>	explode("\n", $t->getTraceAsString())
-						];
-					}
-				}
-			}
-
-			return $res->withJson($content, $statusCode);
-		}
-
-		protected function handleNotFound(Request $request): Response {
-			$res = new Response();
-
-			return $res->withJson([
-				'status'		=>	'error',
-				'message'		=>	'Page not found.'
-			], 404);
-		}
-
-		protected function handleMethodNotAllowed(Request $req, Throwable $t): Response {
-			$routeContext = RouteContext::fromRequest($req);
-			$routingResults = $routeContext->getRoutingResults();
-			$methods = $routingResults->getAllowedMethods();
-			$res = new Response();
-
-			$res = $res->withJson([
-				'status'			=>	'error',
-				'message'			=>	'Method not allowed',
-				'allowedMethods'	=>	$methods
-			], 405);
-
-			$res = $res->withHeader('Allow', implode(', ', $methods));
-
-			return $res;
 		}
 	}
