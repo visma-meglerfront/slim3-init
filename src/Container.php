@@ -17,6 +17,7 @@
 			return $this->has($offset);
 		}
 
+		#[\ReturnTypeWillChange]
 		public function offsetGet($offset) {
 			try {
 				return $this->get($offset);
