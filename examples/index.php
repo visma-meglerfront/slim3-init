@@ -11,7 +11,7 @@
 	};
 
 	// Create SlimInit
-	$slim = new SlimInit();
+	$slim = new SlimInit(true);
 
 	// Add handlers, middleware and set a debug header
 	$slim->addHandlersFromDirectory(__DIR__ . '/handlers')

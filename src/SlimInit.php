@@ -14,6 +14,7 @@
 		InvalidExceptionHandlerException
 	};
 
+	use Adepto\Slim3Init\Middleware\CORS;
 	use Adepto\Slim3Init\Handlers\{
 		ExceptionHandler,
 		MethodNotAllowedExceptionHandler,
@@ -59,6 +60,8 @@
 		protected $middleware;
 		/** @var callable[] */
 		protected $exceptionCallbacks;
+		/** @var ?CORS */
+		protected $corsMiddleware;
 		/** @var App Actual Slim instance */
 		protected $app;
 		/** @var ExceptionHandler Cached default exception handler */
@@ -74,7 +77,7 @@
 		 *     - NotFoundException: 404
 		 *     - MethodNotAllowedException: 405
 		 */
-		public function __construct() {
+		public function __construct(bool $withCORS = false) {
 			$this->exceptions = [];
 			$this->handlers = [];
 			$this->middleware = [];
@@ -89,12 +92,21 @@
 			// Register PHP errors
 			$this->registerShutdownHandler();
 
-			// Add Slim-internal middleware
+			// Add body parsing
 			$this->app->addBodyParsingMiddleware();
+
+			// Add CORS middleware if requested
+			if ($withCORS) {
+				$this->corsMiddleware = new CORS($this->container, ['*']);
+				$this->app->add($this->corsMiddleware);
+			}
+
+			// Add routing
 			$this->app->addRoutingMiddleware();
 
 			// Set router for handlers to access
 			$this->container->set('router', $this->app->getRouteCollector()->getRouteParser());
+			$this->container->set('route_collector', $this->app->getRouteCollector());
 
 			// Add some default exceptions
 			$this->setException(InvalidRequestException::class, 400);
@@ -114,6 +126,15 @@
 		 */
 		public function getContainer(): Container {
 			return $this->container;
+		}
+
+		/**
+		 * Get the CORS middleware, if requested during construction
+		 *
+		 * @return CORS|null
+		 */
+		public function getCORS(): ?CORS {
+			return $this->corsMiddleware;
 		}
 
 		/**
@@ -405,6 +426,9 @@
 			// Map the routes from all loaded handlers
 			$instances = [];
 
+			// Already mapped OPTIONS
+			$optionsMapped = [];
+
 			foreach ($scope->handlers as $handlerClass => $handlerConfig) {
 				if (!isset($instances[$handlerClass])) {
 					$instances[$handlerClass] = new $handlerClass($scope->container);
@@ -433,6 +457,14 @@
 
 					if (!empty($route->getName())) {
 						$slimRoute->setName($route->getName());
+					}
+
+					if ($this->corsMiddleware && !isset($optionsMapped[$route->getURL()])) {
+						$this->app->map([ 'OPTIONS' ], $route->getURL(), function($request, $response) {
+							return $response;
+						});
+
+						$optionsMapped[$route->getURL()] = true;
 					}
 				}
 			}
