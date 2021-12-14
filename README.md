@@ -445,7 +445,26 @@ In their pursuit of being the most generic library on earth, getting Slim's conv
 `ResponseInterface` that doesn't have them and still have IDEs pick that up correctly is a nightmare. So SlimInit
 contains its own implementation of those.
 
-### 3. `new HandlerCaller(…)` is deprecated
+### 3. A new abstract class `Middleware`
+
+You can now also supply middleware that extends `Adepto\Slim3Init\Middleware\Middleware`. This gives you some convenience
+like always having access to the container and creating responses.
+
+```php
+use Adepto\Slim3Init\Middleware\Middleware;
+use Adepto\Slim3Init\Request;
+use Adepto\Slim3Init\Response;
+use Psr\Http\Server\RequestHandlerInterface;
+
+class YourMiddleware extends Middleware {
+
+	public function __invoke(Request $request, RequestHandlerInterface $handler) : Response{
+		return $this->createResponse(404);
+	}
+}
+```
+
+### 4. `new HandlerCaller(…)` is deprecated
 
 Use `HandlerCaller::default(string $baseURL, string $handlerClass, $container = null)` instead.
 
