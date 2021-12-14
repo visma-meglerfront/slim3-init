@@ -481,7 +481,7 @@
 
 			// 404
 			$errorMiddleware->setErrorHandler(HttpNotFoundException::class, function(ServerRequestInterface $request, Throwable $exception) use ($scope) {
-				$handler = $this->getHandlerForException(new NotFoundException($exception->getMessage(), $exception->getCode(), $exception));
+				$handler = $scope->getHandlerForException(new NotFoundException($exception->getMessage(), $exception->getCode(), $exception));
 				return $handler->handle(Request::fromSlimRequest($request), $exception, false);
 			});
 
