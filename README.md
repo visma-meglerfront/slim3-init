@@ -445,4 +445,8 @@ In their pursuit of being the most generic library on earth, getting Slim's conv
 `ResponseInterface` that doesn't have them and still have IDEs pick that up correctly is a nightmare. So SlimInit
 contains its own implementation of those.
 
+### 3. `new HandlerCaller(…)` is deprecated
+
+Use `HandlerCaller::default(string $baseURL, string $handlerClass, $container = null)` instead.
+
 ### to be continued

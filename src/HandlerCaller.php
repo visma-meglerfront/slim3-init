@@ -30,7 +30,12 @@
 
 		protected $routesCache = [];
 
+		public static function create(string $baseURL, string $handlerClass, Container $container = null): self {
+			return new self($baseURL, $handlerClass, $container);
+		}
+
 		/**
+		 * @deprecated Use {@link HandlerCaller::create()}
 		 * Create a HandlerCaller.
 		 *
 		 * @param string            $baseURL      Base-URL that the handler would normally be called under (no specific request URL!)
