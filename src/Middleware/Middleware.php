@@ -4,6 +4,7 @@
 	use Adepto\Slim3Init\Container;
 	use Adepto\Slim3Init\Request;
 	use Adepto\Slim3Init\Response;
+	use Psr\Http\Message\ResponseInterface;
 	use Psr\Http\Server\RequestHandlerInterface;
 
 	/**
@@ -30,6 +31,10 @@
 		 */
 		protected function createResponse(int $status = 500, string $message = ''): Response {
 			return (new Response())->withStatus($status, $message);
+		}
+
+		protected function asResponse(ResponseInterface $response): Response {
+			return Response::fromSlimResponse($response);
 		}
 
 		/**
