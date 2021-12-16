@@ -477,7 +477,7 @@
 			$scope = $this;
 
 			// Add error handlers
-			$errorMiddleware = $this->app->addErrorMiddleware(true, true, true);
+			$errorMiddleware = $this->app->addErrorMiddleware(false, true, true);
 
 			// 404
 			$errorMiddleware->setErrorHandler(HttpNotFoundException::class, function(ServerRequestInterface $request, Throwable $exception) use ($scope) {
