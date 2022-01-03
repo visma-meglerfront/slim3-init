@@ -14,7 +14,7 @@ Add this to `composer.json`:
 	}
 ],
 "require": {
-	"adeptoas/slim3-init": "^2.0.0"
+	"adeptoas/slim3-init": "^4.0.0"
 }
 ```
 
