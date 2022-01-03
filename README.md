@@ -7,12 +7,6 @@ This is a very convenient wrapper around the Slim4 framework providing us with s
 Add this to `composer.json`:
 
 ```json
-"repositories": [
-	{
-		"type": "vcs",
-		"url": "https://github.com/adeptoas/slim3-init"
-	}
-],
 "require": {
 	"adeptoas/slim3-init": "^4.0.0"
 }
