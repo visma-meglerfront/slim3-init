@@ -42,6 +42,37 @@
 		}
 
 		/**
+		 * Get request content type.
+		 *
+		 * Note: This method is not part of the PSR-7 standard.
+		 *
+		 * @return ?string
+		 */
+		public function getContentType(): ?string {
+			$result = $this->getHeader('Content-Type');
+
+			return $result ? $result[0] : null;
+		}
+
+		/**
+		 * Get request media type, if known.
+		 *
+		 * Note: This method is not part of the PSR-7 standard.
+		 *
+		 * @return ?string
+		 */
+		public function getMediaType(): ?string {
+			$contentType = $this->getContentType();
+
+			if (is_string($contentType) && trim($contentType) !== '') {
+				$contentTypeParts = explode(';', $contentType);
+				return strtolower(trim($contentTypeParts[0]));
+			}
+
+			return null;
+		}
+
+		/**
 		 * Get a single query param
 		 *
 		 * @param string $param     Query Param to get
