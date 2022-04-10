@@ -112,4 +112,58 @@
 
 			return $default;
 		}
+
+		/**
+		 * Is this an HTTP GET request?
+		 *
+		 * @return bool
+		 */
+		public function isGet(): bool {
+			return $this->getMethod() == 'GET';
+		}
+
+		/**
+		 * Is this an HTTP POST request?
+		 *
+		 * @return bool
+		 */
+		public function isPost(): bool {
+			return $this->getMethod() == 'POST';
+		}
+
+		/**
+		 * Is this an HTTP PUT request?
+		 *
+		 * @return bool
+		 */
+		public function isPut(): bool {
+			return $this->getMethod() == 'PUT';
+		}
+
+		/**
+		 * Is this an HTTP PATCH request?
+		 *
+		 * @return bool
+		 */
+		public function isPatch(): bool {
+			return $this->getMethod() == 'PATCH';
+		}
+
+		/**
+		 * Is this an HTTP HEAD request?
+		 *
+		 * @return bool
+		 */
+		public function isHead(): bool {
+			return $this->getMethod() == 'HEAD';
+		}
+
+		/**
+		 * Is this an HTTP OPTIONS request?
+		 *
+		 * @return bool
+		 */
+		public function isOptions(): bool {
+			return $this->getMethod() == 'OPTIONS';
+		}
 	}
