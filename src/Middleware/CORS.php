@@ -33,9 +33,10 @@
 		/**
 		 * Create a CORS middleware
 		 *
-		 * @param array      $allowedOrigins    Allowed origins, supply ['*'] to allow all
-		 * @param array|null $allowedHeaders    Allowed headers, leave null to use default headers
-		 * @param int|float  $maxAge            Max age in seconds CORS headers are being cached for
+		 * @param Container  $container
+		 * @param array      $allowedOrigins Allowed origins, supply ['*'] to allow all
+		 * @param array|null $allowedHeaders Allowed headers, leave null to use default headers
+		 * @param int        $maxAge         Max age in seconds CORS headers are being cached for
 		 */
 		public function __construct(Container $container, array $allowedOrigins, ?array $allowedHeaders = null, int $maxAge = self::DEFAULT_MAX_AGE) {
 			$this->container = $container;
@@ -111,7 +112,7 @@
 		/**
 		 * Get all allowed headers
 		 *
-		 * @return array|string[]
+		 * @return string[]
 		 */
 		public function getAllowedHeaders(): array {
 			return $this->allowedHeaders;

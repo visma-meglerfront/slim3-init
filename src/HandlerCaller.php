@@ -23,7 +23,7 @@
 	 */
 	class HandlerCaller {
 		protected ?Container $container;
-		protected $handler;
+		protected mixed $handler;
 		protected string $baseURL;
 		protected FastRouteParser $routeParser;
 
@@ -76,7 +76,7 @@
 			return $this->baseURL;
 		}
 
-		protected function sanitizeURL($url) {
+		protected function sanitizeURL($url): array|string|null {
 			return preg_replace('#\?.*$#', '', $url);
 		}
 
@@ -260,14 +260,14 @@
 		 * @return string
 		 * @throws InvalidRequestException
 		 */
-		protected function doRequest(string $method, string $url, array $headers, $body, array $files = []): string {
+		protected function doRequest(string $method, string $url, array $headers, mixed $body, array $files = []): string {
 			$this->isHTTPMethodAllowedForURL($url, $method);
 			$classMethod = $this->getClassMethodForURL($url, $method);
 
 			// if $body is an array, build a proper request body
 			if (is_array($body)) {
 				// If Content-Type is set to application/json, create a JSON-encoded body
-				if (isset($headers['Content-Type']) && strpos($headers['Content-Type'], 'application/json') !== false) {
+				if (isset($headers['Content-Type']) && str_contains($headers['Content-Type'], 'application/json')) {
 					$body = json_encode($body);
 				} else {
 					$body = http_build_query($body);
@@ -306,7 +306,7 @@
 		 * @return string
 		 * @throws InvalidRequestException
 		 */
-		public function post(string $url, array $headers, $body): string {
+		public function post(string $url, array $headers, mixed $body): string {
 			return $this->doRequest('POST', $url, $headers, $body, []);
 		}
 
@@ -321,7 +321,7 @@
 		 * @return string
 		 * @throws InvalidRequestException
 		 */
-		public function put(string $url, array $headers, $body, array $files = []): string {
+		public function put(string $url, array $headers, mixed $body, array $files = []): string {
 			return $this->doRequest('PUT', $url, $headers, $body, $files);
 		}
 
@@ -336,21 +336,21 @@
 		 * @return string
 		 * @throws InvalidRequestException
 		 */
-		public function patch(string $url, array $headers, $body, array $files = []): string {
+		public function patch(string $url, array $headers, mixed $body, array $files = []): string {
 			return $this->doRequest('PATCH', $url, $headers, $body, $files);
 		}
 
 		/**
 		 * Make a DELETE request to $url with $headers and $body.
 		 *
-		 * @param string        $url     URL relative to {@see $this->getBaseURL()}
-		 * @param array         $headers Headers
-		 * @param string|array  $body    If array, this is converted to JSON or FORM (depending on Content-Type header). If string, it's sent raw.
+		 * @param string       $url     URL relative to {@see $this->getBaseURL()}
+		 * @param array        $headers Headers
+		 * @param array|string $body    If array, this is converted to JSON or FORM (depending on Content-Type header). If string, it's sent raw.
 		 *
 		 * @return string
 		 * @throws InvalidRequestException
 		 */
-		public function delete(string $url, array $headers, $body = ''): string {
+		public function delete(string $url, array $headers, array|string $body = ''): string {
 			return $this->doRequest('DELETE', $url, $headers, $body);
 		}
 
@@ -359,7 +359,7 @@
 		 *
 		 * @return HandlerCaller
 		 */
-		public function setHandler($handler): self {
+		public function setHandler(mixed $handler): self {
 			$this->handler = $handler;
 
 			return $this;

@@ -1,6 +1,7 @@
 <?php
 	namespace Adepto\Slim3Init;
 
+	use Psr\Http\Message\ResponseInterface;
 	use Slim\Psr7\Response as SlimResponse;
 
 	/**
@@ -12,14 +13,8 @@
 	 */
 	class Response extends SlimResponse {
 
-		/**
-		 * @param $response
-		 *
-		 * @return mixed
-		 * @noinspection PhpReturnDocTypeMismatchInspection
-		 */
-		public static function fromSlimResponse($response) {
-			if (!$response instanceof SlimResponse || $response instanceof self) {
+		public static function fromSlimResponse(SlimResponse|ResponseInterface|self $response): SlimResponse|self {
+			if (!$response instanceof self) {
 				return $response;
 			}
 
@@ -39,7 +34,7 @@
 		 *
 		 * @return Response
 		 */
-		public function withJson($json, int $status = -1, int $encodingOptions = 0): Response {
+		public function withJson(mixed $json, int $status = -1, int $encodingOptions = 0): Response {
 			$res = $this->withHeader('Content-Type', 'application/json; charset=utf-8');
 
 			if ($status > -1) {
@@ -54,11 +49,11 @@
 		/**
 		 * Write something into the body
 		 *
-		 * @param mixed $body Something
+		 * @param string $body Something
 		 *
 		 * @return $this
 		 */
-		public function write($body): Response {
+		public function write(string $body): Response {
 			$this->getBody()->write($body);
 
 			return $this;

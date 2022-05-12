@@ -17,20 +17,19 @@
 			return $this->has($offset);
 		}
 
-		#[\ReturnTypeWillChange]
-		public function offsetGet($offset) {
+		public function offsetGet($offset): mixed {
 			try {
 				return $this->get($offset);
-			} catch (Exception $e) {
+			} catch (Exception) {
 				return null;
 			}
 		}
 
-		public function offsetSet($offset, $value): void {
+		public function offsetSet(mixed $offset, mixed $value): void {
 			$this->set($offset, $value);
 		}
 
-		public function offsetUnset($offset): void {
+		public function offsetUnset(mixed $offset): void {
 			$this->set($offset, null);
 		}
 	}

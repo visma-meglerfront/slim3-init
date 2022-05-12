@@ -4,6 +4,8 @@
 	use Adepto\Slim3Init\Exceptions\InvalidRequestException;
 	use DateTime;
 	use DateTimeInterface;
+	use Exception;
+	use Psr\Http\Message\ServerRequestInterface;
 	use Slim\Psr7\Request as SlimRequest;
 
 	/**
@@ -15,14 +17,8 @@
 	 */
 	class Request extends SlimRequest {
 
-		/**
-		 * @param $slimRequest
-		 *
-		 * @return mixed
-		 * @noinspection PhpReturnDocTypeMismatchInspection
-		 */
-		public static function fromSlimRequest($slimRequest) {
-			if (!$slimRequest instanceof SlimRequest || $slimRequest instanceof self) {
+		public static function fromSlimRequest(SlimRequest|ServerRequestInterface|self $slimRequest): SlimRequest|self {
+			if ($slimRequest instanceof self) {
 				return $slimRequest;
 			}
 
@@ -84,12 +80,12 @@
 		/**
 		 * Get a single query param
 		 *
-		 * @param string $param     Query Param to get
-		 * @param mixed  $default   Default value to return, defaults to null
+		 * @param string     $param   Query Param to get
+		 * @param mixed|null $default Default value to return, defaults to null
 		 *
 		 * @return mixed
 		 */
-		public function getQueryParam(string $param, $default = null) {
+		public function getQueryParam(string $param, mixed $default = null): mixed {
 			return $this->getQueryParams()[$param] ?? $default;
 		}
 
@@ -111,7 +107,7 @@
 				} else {
 					try {
 						$date = new DateTime($param);
-					} catch (\Exception $e) {
+					} catch (Exception) {
 						throw new InvalidRequestException('Invalid date for \'' . $param . '\'', 400);
 					}
 				}

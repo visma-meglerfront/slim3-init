@@ -174,10 +174,10 @@
 		/**
 		 * Set the status code for an exception.
 		 *
-		 * @param string|array                  $ex                     Exception Class(es)
-		 * @param int|string                    $statusCodeOrHandler    HTTP status code
+		 * @param array|string $ex                  Exception Class(es)
+		 * @param int|string   $statusCodeOrHandler HTTP status code
 		 */
-		public function setException($ex, $statusCodeOrHandler): SlimInit {
+		public function setException(array|string $ex, int|string $statusCodeOrHandler): SlimInit {
 			if (is_array($ex)) {
 				foreach ($ex as $e) {
 					$this->setException($e, $statusCodeOrHandler);
@@ -252,7 +252,7 @@
 		 * @param string $key   Key
 		 * @param mixed  $value Value
 		 */
-		public function addToContainer(string $key, $value): SlimInit {
+		public function addToContainer(string $key, mixed $value): SlimInit {
 			$this->container[$key] = $value;
 
 			return $this;
@@ -346,7 +346,7 @@
 					if (!$reflectionClass->isAbstract()) {
 						$this->addHandler($handlerClassPath);
 					}
-				} catch (ReflectionException $exception) {
+				} catch (ReflectionException) {
 					throw new InvalidArgumentException($handlerClass . ' is not a valid class');
 				}
 			}
