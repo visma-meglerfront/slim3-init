@@ -418,6 +418,14 @@ use Adepto\Slim3Init\SlimInit;
 $app->setException(SomethingNotFoundException::class, 404);
 ```
 
+### 4. SlimInit 4.1 requires PHP 7.4+
+
+SlimInit 4.1 is also the only version targeting PHP 7.4 specifically.
+
+### 5. SlimInit 4.2 requires PHP 8.1+
+
+Currently in development, this version will require PHP 8.1 or higher.
+
 ## Minor Changes
 
 ### 1. SlimInit now uses a custom extension of `DI\Container`
