@@ -1,9 +1,12 @@
 <?php
 	namespace Adepto\Slim3Init\Middleware;
 
-	use Adepto\Slim3Init\Container;
-	use Adepto\Slim3Init\Request;
-	use Adepto\Slim3Init\Response;
+	use Adepto\Slim3Init\{
+		Container,
+		Request,
+		Response
+	};
+
 	use Psr\Http\Message\ResponseInterface;
 	use Psr\Http\Server\RequestHandlerInterface;
 
@@ -15,7 +18,7 @@
 	 * @version    1.0
 	 */
 	abstract class Middleware {
-		protected $container;
+		protected Container $container;
 
 		public function __construct(Container $container) {
 			$this->container = $container;

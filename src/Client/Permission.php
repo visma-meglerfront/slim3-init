@@ -7,7 +7,6 @@
 	 *
 	 * @author  bluefirex
 	 * @version 2.0
-	 * @package as.adepto.slim-init.client
 	 */
 	interface Permission {
 

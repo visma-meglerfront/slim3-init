@@ -14,7 +14,6 @@
 	 *
 	 * @author  bluefirex
 	 * @version 1.1
-	 * @package as.adepto.slim-init.handlers
 	 */
 	abstract class PrivilegedHandler extends Handler {
 		const CONTAINER_CLIENT = 'Client';
@@ -28,7 +27,7 @@
 			$client = $this->container[self::CONTAINER_CLIENT];
 
 			if (!$client instanceof Client) {
-				throw new InvalidArgumentException('Client does not implements Adepto\\Slim3Init\\Client\\Client.');
+				throw new InvalidArgumentException('Client does not implement Adepto\\Slim3Init\\Client\\Client.');
 			}
 
 			return $client;

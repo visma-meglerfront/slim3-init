@@ -55,6 +55,15 @@
 		}
 
 		/**
+		 * Get the body's content length
+		 *
+		 * @return int
+		 */
+		public function getContentLength(): int {
+			return $this->getBody()->getSize();
+		}
+
+		/**
 		 * Get request media type, if known.
 		 *
 		 * Note: This method is not part of the PSR-7 standard.

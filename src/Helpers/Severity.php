@@ -13,10 +13,8 @@
 	class Severity {
 		/**
 		 * Severity Levels
-		 *
-		 * @var array
 		 */
-		protected $levels = [
+		protected array $levels = [
 			E_DEPRECATED        => LogLevel::INFO,
 			E_USER_DEPRECATED   => LogLevel::INFO,
 			E_NOTICE            => LogLevel::WARNING,

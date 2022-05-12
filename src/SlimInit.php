@@ -47,25 +47,24 @@
 	 *
 	 * @author  bluefirex
 	 * @version 2.0
-	 * @package as.adepto.slim-init
 	 */
 	class SlimInit {
-		/** @var Container Container for passing around to everything */
-		protected $container;
-		/** @var array Exception mapping to status codes and handlers */
-		protected $exceptions;
-		/** @var array Route handlers */
-		protected $handlers;
-		/** @var array User-added middleware */
-		protected $middleware;
-		/** @var callable[] */
-		protected $exceptionCallbacks;
-		/** @var ?CORS */
-		protected $corsMiddleware;
-		/** @var App Actual Slim instance */
-		protected $app;
-		/** @var ExceptionHandler Cached default exception handler */
-		private $defaultExceptionHandler;
+		/** Container for passing around to everything */
+		protected Container $container;
+		/** Exception mapping to status codes and handlers */
+		protected array $exceptions;
+		/** Route handlers */
+		protected array $handlers;
+		/** User-added middleware */
+		protected array $middleware;
+		/** @var callable[] $exceptionCallbacks */
+		protected array $exceptionCallbacks;
+		/** Middleware for handling CORS */
+		protected ?CORS $corsMiddleware = null;
+		/** Actual Slim instance */
+		protected App $app;
+		/** Cached default exception handler */
+		private ?ExceptionHandler $defaultExceptionHandler = null;
 
 		/**
 		 * Create a SlimInit container.
@@ -473,8 +472,6 @@
 			foreach ($this->middleware as $middleware) {
 				$this->app->add($middleware);
 			}
-
-			$scope = $this;
 
 			// Add error handlers
 			$errorMiddleware = $this->app->addErrorMiddleware(false, true, true);

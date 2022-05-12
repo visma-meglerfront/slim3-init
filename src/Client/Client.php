@@ -7,7 +7,6 @@
 	 *
 	 * @author  bluefirex
 	 * @version 2.0
-	 * @package as.adepto.slim-init.client
 	 */
 	interface Client {
 
@@ -28,7 +27,8 @@
 		/**
 		 * Check whether this client has a specific permission
 		 *
-		 * @param string  $name Name of the permission
+		 * @param string $name Name of the permission
+		 * @param array  $data
 		 *
 		 * @return boolean
 		 */

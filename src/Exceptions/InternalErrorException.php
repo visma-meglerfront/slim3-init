@@ -10,10 +10,9 @@
 	 *
 	 * @author  bluefirex
 	 * @version 1.0
-	 * @package as.adepto.slim-init.exceptions
 	 */
 	class InternalErrorException extends \Exception {
-		protected $request;
+		protected Request $request;
 
 		public function __construct(Request $request, string $message, ?Throwable $previous = null) {
 			parent::__construct($message, 500, $previous);

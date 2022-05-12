@@ -19,15 +19,14 @@
 	 *
 	 * @author  bluefirex
 	 * @version 3.0
-	 * @package as.adepto.slim-init.middleware
 	 */
 	abstract class BasicAuth {
 		const EXCEPTION_AUTH_MISSING = 1;
 		const EXCEPTION_AUTH_OVERLOAD = 2;
 		const EXCEPTION_AUTH_UNSUPPORTED = 3;
 
-		protected $container;
-		protected $realm;
+		protected Container $container;
+		protected string $realm;
 
 		public function __construct(Container $container, string $realm = 'API') {
 			$this->container = $container;
@@ -83,6 +82,8 @@
 		 * @param array  $credentials Credentials: [ 'username' => '...', 'password' => '...']
 		 *
 		 * @return array  Values to add to the container in key/value format
+		 *
+		 * @throws UnauthorizedException
 		 */
 		abstract protected function authorize(array $credentials): array;
 

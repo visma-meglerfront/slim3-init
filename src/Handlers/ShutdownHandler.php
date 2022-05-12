@@ -14,11 +14,11 @@
 	 * @version    1.0
 	 */
 	class ShutdownHandler {
-		protected $request;
-		protected $exceptionHandler;
-		protected $displayErrorDetails;
-		protected $logErrors;
-		protected $logErrorDetails;
+		protected Request $request;
+		protected ExceptionHandler $exceptionHandler;
+		protected bool $displayErrorDetails;
+		protected bool $logErrors;
+		protected bool $logErrorDetails;
 
 		public function __construct(Request $request, ExceptionHandler $exceptionHandler, bool $displayErrorDetails, bool $logErrors, bool $logErrorDetails) {
 			$this->request = $request;

@@ -7,6 +7,5 @@
 	 *
 	 * @author  bluefirex
 	 * @version 1.0
-	 * @package as.adepto.slim-init.exceptions
 	 */
 	class InvalidExceptionHandlerException extends \Exception {}

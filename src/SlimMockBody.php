@@ -9,11 +9,10 @@
 	 *
 	 * @author  bluefirex
 	 * @version 1.0
-	 * @package as.adepto.slim-init
 	 */
 	class SlimMockBody extends Stream {
 
-		public function __construct($str) {
+		public function __construct(string $str) {
 			$stream = fopen('php://memory', 'r+');
 			fwrite($stream, $str);
 			rewind($stream);

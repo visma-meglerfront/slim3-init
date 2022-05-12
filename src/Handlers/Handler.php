@@ -22,10 +22,9 @@
 	 *
 	 * @author  bluefirex
 	 * @version 1.2
-	 * @package as.adepto.slim-init.handlers
 	 */
 	abstract class Handler {
-		protected $container;
+		protected Container $container;
 
 		/**
 		 * Create a handler with a Slim container.

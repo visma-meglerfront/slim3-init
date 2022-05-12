@@ -5,17 +5,16 @@
 	 * Route
 	 *
 	 * @author  bluefirex
-	 * @version 1.2
-	 * @package as.adepto.slim-init.handlers
+	 * @version 1.3
 	 */
 	class Route {
-		protected $httpMethod;
-		protected $url;
-		protected $classMethod;
-		protected $arguments;
-		protected $name;
+		protected string $httpMethod;
+		protected string $url;
+		protected string $classMethod;
+		protected array $arguments;
+		protected string $name;
 
-		public function __construct($httpMethod, $url, $classMethod, array $arguments = [], string $name = '') {
+		public function __construct(string $httpMethod, string $url, string $classMethod, array $arguments = [], string $name = '') {
 			$this->httpMethod = $httpMethod;
 			$this->url = $url;
 			$this->classMethod = $classMethod;
@@ -37,7 +36,7 @@
 		 *
 		 * @return string
 		 */
-		public function getURL() {
+		public function getURL(): string {
 			return $this->url;
 		}
 

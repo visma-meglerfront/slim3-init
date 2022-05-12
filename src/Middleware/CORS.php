@@ -1,15 +1,19 @@
 <?php
 	namespace Adepto\Slim3Init\Middleware;
 
-	use Adepto\Slim3Init\Container;
-	use Adepto\Slim3Init\Request;
-	use Adepto\Slim3Init\Response;
+	use Adepto\Slim3Init\{
+		Container,
+		Request
+	};
+
 	use Psr\Http\Message\ResponseInterface;
 	use Psr\Http\Server\RequestHandlerInterface;
-	use Slim\Routing\Route;
-	use Slim\Routing\RouteCollector;
-	use Slim\Routing\RouteContext;
-	use Slim\Routing\RouteParser;
+
+	use Slim\Routing\{
+		Route,
+		RouteCollector,
+		RouteContext
+	};
 
 	/**
 	 * CORS
@@ -21,10 +25,10 @@
 	class CORS {
 		const DEFAULT_MAX_AGE = 60 * 60 * 24;
 
-		protected $container;
-		protected $allowedOrigins;
-		protected $allowedHeaders;
-		protected $maxAge;
+		protected Container $container;
+		protected array $allowedOrigins;
+		protected ?array $allowedHeaders;
+		protected int $maxAge;
 
 		/**
 		 * Create a CORS middleware

@@ -20,17 +20,16 @@
 	 *
 	 * @author  bluefirex
 	 * @version 1.2
-	 * @package as.adepto.slim-init
 	 */
 	class HandlerCaller {
-		protected $container;
+		protected ?Container $container;
 		protected $handler;
-		protected $baseURL;
-		protected $routeParser;
+		protected string $baseURL;
+		protected FastRouteParser $routeParser;
 
-		protected $routesCache = [];
+		protected array $routesCache = [];
 
-		public static function create(string $baseURL, string $handlerClass, Container $container = null): self {
+		public static function create(string $baseURL, string $handlerClass, ?Container $container = null): self {
 			return new self($baseURL, $handlerClass, $container);
 		}
 
@@ -42,7 +41,7 @@
 		 * @param string            $handlerClass Class Name of the Handler to adapt to
 		 * @param Container|null    $container    If supplied, this will be used as the container for the handler.
 		 */
-		public function __construct(string $baseURL, string $handlerClass, Container $container = null) {
+		public function __construct(string $baseURL, string $handlerClass, ?Container $container = null) {
 			$this->container = $container ?? new Container();
 
 			$this->handler = new $handlerClass($this->container);
@@ -353,5 +352,16 @@
 		 */
 		public function delete(string $url, array $headers, $body = ''): string {
 			return $this->doRequest('DELETE', $url, $headers, $body);
+		}
+
+		/**
+		 * @param mixed $handler
+		 *
+		 * @return HandlerCaller
+		 */
+		public function setHandler($handler): self {
+			$this->handler = $handler;
+
+			return $this;
 		}
 	}

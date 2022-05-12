@@ -14,14 +14,10 @@
 	use Throwable;
 
 	class ExceptionHandler {
-		/** @var Container */
-		protected $container;
-		/** @var SlimInit */
-		protected $app;
-		/** @var LoggerInterface */
-		protected $logger;
-		/** @var bool */
-		protected $logException;
+		protected Container $container;
+		protected SlimInit $app;
+		protected ?LoggerInterface $logger;
+		protected bool $logException;
 
 		/**
 		 * Create a handler with a container.
