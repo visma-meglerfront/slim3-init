@@ -119,6 +119,16 @@
 		}
 
 		/**
+		 * Get a reference to the internal slim app
+		 * It is recommended to use SlimInit's methods where possible, as these take dependencies and customizations into account.
+		 *
+		 * @return App
+		 */
+		public function getSlimApp(): App {
+			return $this->app;
+		}
+
+		/**
 		 * Get the Slim container.
 		 *
 		 * @return Container
