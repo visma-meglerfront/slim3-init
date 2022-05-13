@@ -214,7 +214,24 @@ a `Adepto\Slim3Init\Exceptions\AccessDeniedException` if the given permission is
 
 ---
 
-### Route
+### Attribute Route
+
+Attribute that defines a route which maps an HTTP call to a method in your handler class.
+
+```php
+#[Route(string $method, string $url, array $arguments = [], string $name = '')]
+```
+
+- `$method`: The HTTP verb used for this route, i.e. GET, POST, PATCH, DELETE, …
+- `$url`: Slim-compatible URL pattern, i.e. `/client/{client:[a-zA-Z0-9]+}`
+- `$arguments`: Additional arguments to add to `$args` of the method.
+- `$name`: Name for the route so that it can be retrieved by any handlers.
+
+---
+
+### Handler Route
+
+> :warning: Directly using handler routes is considered legacy behavior and no longer recommended.
 
 Defines a route which has to be returned inside an array returned by your handler's `getRoutes()` function.
 
