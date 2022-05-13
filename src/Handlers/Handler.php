@@ -4,7 +4,8 @@
 	use Adepto\Slim3Init\{
 		Container,
 		Request,
-		Response
+		Response,
+		SlimInit
 	};
 
 	use Psr\Container\{
@@ -12,6 +13,7 @@
 		NotFoundExceptionInterface
 	};
 
+	use Psr\Http\Message\UriInterface;
 	use ReflectionClass;
 	use ReflectionMethod;
 	use Slim\Interfaces\RouteParserInterface;
@@ -66,6 +68,31 @@
 			$router = $this->getContainer()->get('router');
 
 			return $router->urlFor($name, $arguments);
+		}
+
+		/**
+		 * @param UriInterface $uri   URI to make new URL relative to
+		 * @param string       $path  Path for the new URL
+		 * @param array|string $query Query for the new URL
+		 *
+		 * @return string
+		 *
+		 * @noinspection PhpDocMissingThrowsInspection
+		 */
+		public function createURL(UriInterface $uri, string $path, array|string $query = ''): string {
+			if (is_array($query)) {
+				$query = http_build_query($query);
+			}
+
+			$uri = $uri->withUserInfo('')
+			           ->withQuery($query);
+
+			/** @var SlimInit $init */
+			/** @noinspection PhpUnhandledExceptionInspection init always exists */
+			$init = $this->container->get('init');
+			$basePath = $init->getBasePath();
+
+			return (string) $uri->withPath($basePath . $path);
 		}
 
 		/**

@@ -163,6 +163,15 @@
 		}
 
 		/**
+		 * Get the base path.
+		 *
+		 * @return string
+		 */
+		public function getBasePath(): string {
+			return $this->app->getBasePath();
+		}
+
+		/**
 		 * Set the header used for debugging.
 		 * If a header is set with the key and value defined here,
 		 * it will circumvent any "human friendly" error page and output exception's
