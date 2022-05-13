@@ -2,7 +2,6 @@
 	namespace Adepto\Slim3Init\Handlers;
 
 	use Adepto\Slim3Init\Attributes\Route as RouteAttribute;
-	use Attribute;
 
 	/**
 	 * Route
@@ -10,7 +9,6 @@
 	 * @author  bluefirex
 	 * @version 1.3
 	 */
-	#[Attribute(Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
 	class Route {
 		protected string $httpMethod;
 		protected string $url;
