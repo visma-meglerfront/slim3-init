@@ -94,6 +94,9 @@
 			// Add body parsing
 			$this->app->addBodyParsingMiddleware();
 
+			// Register init in Container
+			$this->container->set('init', $this);
+
 			// Add CORS middleware if requested
 			if ($withCORS) {
 				$this->corsMiddleware = new CORS($this->container, ['*']);
