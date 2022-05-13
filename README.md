@@ -14,7 +14,7 @@ Add this to `composer.json`:
 
 Make sure to merge your `require`-blocks!
 
-> :info: Originally this library was written for Slim 3, hence the "3" in Slim3Init. Since SlimInit v4.0, its major
+> :information_source: Originally this library was written for Slim 3, hence the "3" in Slim3Init. Since SlimInit v4.0, its major
 > version corresponds to Slim's major version it is using. As a result, SlimInit 4.x uses Slim 4.
 
 ## Usage
