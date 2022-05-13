@@ -1,7 +1,7 @@
 {
 	"name": "adeptoas/slim3-init",
 	"type": "library",
-	"description": "A very convenient support library for Slim 3",
+	"description": "A very convenient support library for Slim",
 	"license": "proprietary",
 	"authors": [
 		{
