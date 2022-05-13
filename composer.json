@@ -18,9 +18,6 @@
 		"ext-json": "*",
 		"slim/psr7": "^1.5"
 	},
-	"require-dev": {
-		"squizlabs/php_codesniffer": "^2.5"
-	},
 	"autoload": {
 		"psr-4": {
 			"Adepto\\Slim3Init\\": "src"
@@ -28,10 +25,8 @@
 	},
 	"scripts": {
 		"test": [
-			"@phpunit",
-			"@phpcs"
+			"@phpunit"
 		],
-		"phpunit": "php vendor/bin/phpunit",
-		"phpcs": "php vendor/bin/phpcs"
+		"phpunit": "php vendor/bin/phpunit"
 	}
 }
