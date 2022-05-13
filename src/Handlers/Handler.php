@@ -12,9 +12,13 @@
 		NotFoundExceptionInterface
 	};
 
+	use ReflectionClass;
+	use ReflectionMethod;
 	use Slim\Interfaces\RouteParserInterface;
 	use RuntimeException;
 	use stdClass;
+
+	use Adepto\Slim3Init\Attributes\Route as RouteAttribute;
 
 	/**
 	 * Handler
@@ -81,11 +85,25 @@
 
 		/**
 		 * Get the routes for this handler. This has to be an array
-		 * full of {@see Route} objects.
+		 * full of {@see Route} objects, either by using {@see Route} attributes or overriding this method
 		 *
-		 * @return array
+		 * @return Route[]
 		 */
 		public static function getRoutes(): array {
-			return [];
+			$reflection = new ReflectionClass(static::class);
+			$methods = $reflection->getMethods(ReflectionMethod::IS_PUBLIC);
+			$routes = [];
+
+			foreach ($methods as $method) {
+				$routeAttributes = $method->getAttributes(RouteAttribute::class);
+
+				foreach ($routeAttributes as $routeAttribute) {
+					/** @var RouteAttribute $attribute */
+					$attribute = $routeAttribute->newInstance();
+					$routes[] = Route::fromAttribute($attribute, $method->getName());
+				}
+			}
+
+			return $routes;
 		}
 	}

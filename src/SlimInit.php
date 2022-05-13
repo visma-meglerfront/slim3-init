@@ -436,7 +436,7 @@
 				/** @var $config Handlers\Route */
 				foreach ($handlerConfig as $route) {
 					if (!$route instanceof Route) {
-						throw new InvalidArgumentException('Route must be instance of Adepto\\Slim3Init\\Handlers\\Route');
+						throw new InvalidArgumentException('Route must be instance of ' . Route::class);
 					}
 
 					$slimRoute = $this->app->map([ $route->getHTTPMethod() ], $route->getURL(), function($request, $response, $args) use($handlerClass, $route, $instances) {

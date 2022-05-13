@@ -173,15 +173,28 @@ times.
 
 ### Handler
 
-To have your API do something, you need to create handlers which extend `Adepto\Slim3Init\Handlers\Handler`. Each
-handler must override `getRoutes(): array` to return an array of routes. Each handler receives a container in the
-constructor by default.
+To have your API do something, you need to create handlers which extend `Adepto\Slim3Init\Handlers\Handler`. Each handler
+implements methods that can be called via HTTP. Those methods contain `#[Route()]` attributes that tell SlimInit how
+to configure the route to that method.
+
+Each handler receives a container in the constructor by default.
 
 The actual methods of your handler must have the following signature:
 
 ```php
-public function someName(Adepto\Slim3Init\Request $request, Adepto\Slim3Init\Response $response, \stdClass $args): Adepto\Slim3Init\Response
+#[\Adepto\Slim3Init\Attributes\Route('GET', '/some/path', arguments: [], name: 'some-name')]
+public function someName(\Adepto\Slim3Init\Request $request, \Adepto\Slim3Init\Response $response, \stdClass $args): Adepto\Slim3Init\Response {}
 ```
+
+or after importing types:
+
+```php
+#[Route('GET', '/some/path', arguments: [], name: 'some-name')]
+public function someName(Request $request, Response $response, stdClass $args): Response {}
+```
+
+> :warning: While you can also override `static function getRoutes()` in your handler, doing so is considered legacy behavior
+> and will be unsupported in an upcoming release. It is recommended to only use attributes moving forward.
 
 ---
 

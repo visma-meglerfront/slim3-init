@@ -1,17 +1,16 @@
 <?php
-
 	use Adepto\Slim3Init\Exceptions\AccessDeniedException;
 
 	use Adepto\Slim3Init\Handlers\{
-		PrivilegedHandler,
-		Route
+		PrivilegedHandler
 	};
 
 	use Adepto\Slim3Init\{
+		Attributes\Route,
 		Request,
 		Response
 	};
-	
+
 	class PrivilegedExampleHandler extends PrivilegedHandler {
 
 		/**
@@ -23,6 +22,7 @@
 		 *
 		 * @return Response
 		 */
+		#[Route('GET', '/permissions')]
 		public function getPermissions(Request $request, Response $response, stdClass $args): Response {
 			$perms = [];
 
@@ -46,6 +46,7 @@
 		 * @return Response
 		 * @throws AccessDeniedException
 		 */
+		#[Route('GET', '/data/{id:[0-9]+}')]
 		public function getData(Request $request, Response $response, \stdClass $args): Response {
 			$this->forcePermission('example.perm', array_diff((array) $args, [2]));
 
@@ -65,12 +66,5 @@
 			}
 
 			return $next($request, $response, $args);
-		}
-
-		public static function getRoutes(): array {
-			return [
-				new Route('GET', '/permissions', 'getPermissions'),
-				new Route('GET', '/data/{id:[0-9]+}', 'getData')
-			];
 		}
 	}
