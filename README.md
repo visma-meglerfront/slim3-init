@@ -454,7 +454,12 @@ SlimInit 4.1 is also the only version targeting PHP 7.4 specifically.
 
 ### 5. SlimInit 4.2 requires PHP 8.1+
 
-Currently in development, this version will require PHP 8.1 or higher.
+This version will require PHP 8.1 or higher.
+
+### 6. Using `Handler\Route` is considered legacy behavior
+
+There now exists `Attributes\Route` to decorate methods with that configure routing. Being able to override
+`getRoutes(): array` will be removed in an upcoming release.
 
 ## Minor Changes
 
