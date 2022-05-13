@@ -12,8 +12,8 @@
 	],
 	"require": {
 		"php": ">=8.1",
-		"slim/slim": "^4.9",
-		"php-di/php-di": "^6.3",
+		"slim/slim": "^4.10.0",
+		"php-di/php-di": "^6.4.0",
 		"ext-mbstring": "*",
 		"ext-json": "*",
 		"slim/psr7": "^1.5"
