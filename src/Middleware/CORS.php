@@ -191,7 +191,7 @@
 			return $this->maxAge;
 		}
 
-		protected function addCORSHeaders(Request $request, ResponseInterface $response): ResponseInterface {
+		public function addCORSHeaders(Request $request, ResponseInterface $response): ResponseInterface {
 			$serverParams = $request->getServerParams();
 
 			if ($this->isOriginAllowed('*')) {
