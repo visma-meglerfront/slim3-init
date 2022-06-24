@@ -510,6 +510,11 @@
 				// Go!
 				$response = $handler->handle($request, $exception, $displayErrorDetails);
 
+				// Add CORS headers
+				if ($scope->corsMiddleware) {
+					$response = $scope->corsMiddleware->addCORSHeaders($request, $response);
+				}
+
 				if ($response->getStatusCode() >= 500) {
 					// Run exception callbacks
 					foreach ($scope->exceptionCallbacks as $callback) {
