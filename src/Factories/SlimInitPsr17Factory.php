@@ -11,6 +11,6 @@
 	 * @version    1.0
 	 */
 	class SlimInitPsr17Factory extends SlimPsr17Factory {
-		protected static $responseFactoryClass = 'Adepto\Slim3Init\Factories\ResponseFactory';
-		protected static $serverRequestCreatorClass = 'Adepto\Slim3Init\Factories\ServerRequestFactory';
+		protected static string $responseFactoryClass = 'Adepto\Slim3Init\Factories\ResponseFactory';
+		protected static string $serverRequestCreatorClass = 'Adepto\Slim3Init\Factories\ServerRequestFactory';
 	}
