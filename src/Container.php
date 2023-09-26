@@ -3,6 +3,7 @@
 
 	use ArrayAccess;
 	use Exception;
+	use \AllowDynamicProperties;
 
 	/**
 	 * A container for dependency injection.
@@ -11,6 +12,7 @@
 	 * @author     bluefirex
 	 * @version    1.0
 	 */
+	#[AllowDynamicProperties]
 	class Container extends \DI\Container implements ArrayAccess {
 
 		public function offsetExists($offset): bool {
